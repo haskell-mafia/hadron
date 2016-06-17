@@ -3,11 +3,11 @@ version:               0.0.1
 license:               AllRightsReserved
 author:                Ambiata <info@ambiata.com>
 maintainer:            Ambiata <info@ambiata.com>
-copyright:             (c) 2015 Ambiata.
+copyright:             (c) 2016 Ambiata.
 synopsis:              ambiata-hadron
 category:              System
 cabal-version:         >= 1.8
-build-type:            Simple
+build-type:            Custom
 description:           ambiata-hadron
 
 library
