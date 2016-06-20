@@ -3,11 +3,11 @@ version:               0.0.1
 license:               AllRightsReserved
 author:                Ambiata <info@ambiata.com>
 maintainer:            Ambiata <info@ambiata.com>
-copyright:             (c) 2015 Ambiata.
+copyright:             (c) 2016 Ambiata.
 synopsis:              ambiata-hadron
 category:              System
 cabal-version:         >= 1.8
-build-type:            Simple
+build-type:            Custom
 description:           ambiata-hadron
 
 library
@@ -15,6 +15,9 @@ library
                        base                            >= 3          && < 5
                      , ambiata-p
                      , ambiata-x-eithert
+                     , bytestring                      >= 0.10.4     && <= 0.10.8.1
+                     , deepseq-generics                == 0.2.0.*
+                     , semigroups                      >= 0.16       && < 0.19
                      , transformers                    >= 0.4        && < 0.6
 
   ghc-options:
@@ -26,6 +29,11 @@ library
   exposed-modules:
                        Paths_ambiata_hadron
                        Hadron
+                       Hadron.Data
+                       Hadron.Data.Header
+                       Hadron.Data.Request
+                       Hadron.Data.Target
+                       Hadron.Data.Version
 
 test-suite test
   type:                exitcode-stdio-1.0
