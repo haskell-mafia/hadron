@@ -18,12 +18,9 @@ import           P
 -- 7230 (section 5.3) with reference to RFC 3986. 'RequestTarget'
 -- implements the subset of URI forms used in HTTP. 
 --
--- FIXME: implement these.
+-- FIXME: implement the others (asterisk, absolute, target).
 data RequestTarget =
-    AsteriskTarget
-  | AbsoluteTarget
-  | AbsPathTarget
-  | AuthorityTarget
+    AbsPathTarget
   deriving (Eq, Show, Generic)
 
 instance NFData RequestTarget where rnf = genericRnf
