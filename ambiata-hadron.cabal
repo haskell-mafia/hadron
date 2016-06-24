@@ -38,6 +38,7 @@ library
                        Hadron.Parser.Common
                        Hadron.Parser.Header
                        Hadron.Parser.Request
+                       Hadron.Parser.Target
 
 test-suite test
   type:                exitcode-stdio-1.0
