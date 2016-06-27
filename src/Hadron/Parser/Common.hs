@@ -5,7 +5,6 @@ module Hadron.Parser.Common(
     hexByte
   , hexDigit
   , isTokenWord
-  , isVisible
   , skipOWS
   ) where
 
@@ -17,7 +16,7 @@ import           Data.Word
 
 import           P
 
-import           X.Data.Attoparsec.ByteString.Ascii (isAlphaNum, isPrintable)
+import           X.Data.Attoparsec.ByteString.Ascii (isAlphaNum)
 
 -- | Valid part of a "token" as defined by RFC 7230.
 --
@@ -39,10 +38,6 @@ isTokenWord 0x60 = True -- backtick
 isTokenWord 0x7c = True -- pipe
 isTokenWord 0x7e = True -- tilde
 isTokenWord w = isAlphaNum w
-
--- | Printable ASCII characters.
-isVisible :: Word8 -> Bool
-isVisible = isPrintable
 
 -- | Two hexadecimal digits.
 hexByte :: Parser ByteString

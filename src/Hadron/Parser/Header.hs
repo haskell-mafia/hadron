@@ -18,15 +18,14 @@ import           Hadron.Parser.Common
 import           P
 
 import           X.Data.Attoparsec.ByteString (sepByByte1)
+import           X.Data.Attoparsec.ByteString.Ascii (isPrintable)
 
 -- | header-field   = field-name ":" OWS field-value OWS
 headerP :: Parser Header
 headerP = do
   n <- headerNameP
   void $ AB.word8 0x3a -- colon
-  skipOWS
   vs <- fmap NE.fromList $ sepByByte1 headerValueP 0x2c -- comma
-  skipOWS
   pure $ Header n vs
 
 headerNameP :: Parser HeaderName
@@ -40,10 +39,10 @@ headerValueP =
   fmap HeaderValue $ AB.peekWord8 >>= \case
     Nothing -> pure "" -- empty header values are technically valid
     Just w ->
-      if isVisible w
+      if isPrintable w
         then AB.takeWhile isHeaderWord
         else fail "invalid initial header value character"
   where
     isHeaderWord 0x09 = True -- tab
-    isHeaderWord w = isVisible w
+    isHeaderWord w = isPrintable w
 
