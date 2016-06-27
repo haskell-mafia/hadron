@@ -38,6 +38,7 @@ headerValueP :: Parser HeaderValue
 headerValueP =
   fmap HeaderValue $ AB.peekWord8 >>= \case
     Nothing -> pure "" -- empty header values are technically valid
+    Just 0x0d -> pure "" -- end of the line, empty header
     Just w ->
       if isPrintable w
         then AB.takeWhile isHeaderWord
