@@ -22,6 +22,8 @@ import           Test.QuickCheck ((===))
 
 prop_URIPath_tripping = trippingP renderURIPath uriPathP
 
+prop_QueryString_tripping = trippingP renderQueryString queryStringP
+
 prop_percentEncodedP w =
   let bs = percentEncode w
       r = AB.parseOnly percentEncodedP bs in

@@ -3,6 +3,8 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Test.Hadron.Arbitrary where
 
+import qualified Data.ByteString as BS
+
 import           P
 
 import           Hadron.Data
@@ -38,3 +40,12 @@ instance Arbitrary HeaderValue where
 
 instance Arbitrary URIPath where
   arbitrary = fmap URIPath genURIPath
+
+-- FIXME: have a more realistic example as well as the "everything we're
+-- allowed to do" version
+instance Arbitrary QueryString where
+  arbitrary = frequency [(1, pure NoQueryString), (999, genQueryString')]
+    where
+      genQueryString' = do
+        ps <- fmap BS.concat $ listOf genQueryStringPart
+        pure . QueryStringPart $ "?" <> ps

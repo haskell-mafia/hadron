@@ -103,3 +103,8 @@ genURIPath =
         , s0
         , BS.intercalate "/" ss
         ]
+
+genQueryStringPart =
+  frequency [(1, genExtra), (99, genURIPchar)]
+  where
+    genExtra = fmap BS.singleton $ elements $ toWords "/?"
