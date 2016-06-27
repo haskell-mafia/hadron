@@ -6,6 +6,8 @@ module Hadron.Data.Header(
     HeaderName(..)
   , HeaderValue(..)
   , Header(..)
+
+  , renderHeader
   , renderHeaderName
   , renderHeaderValue
   ) where
@@ -13,7 +15,9 @@ module Hadron.Data.Header(
 import           Control.DeepSeq.Generics (genericRnf)
 
 import           Data.ByteString (ByteString)
+import qualified Data.ByteString as BS
 import           Data.List.NonEmpty (NonEmpty)
+import qualified Data.List.NonEmpty as NE
 
 import           GHC.Generics (Generic)
 
@@ -53,3 +57,10 @@ data Header =
   } deriving (Eq, Show, Generic)
 
 instance NFData Header where rnf = genericRnf
+
+renderHeader :: Header -> ByteString
+renderHeader (Header n vs) = BS.concat [
+    renderHeaderName n
+  , ":"
+  , BS.intercalate "," (NE.toList $ renderHeaderValue <$> vs)
+  ]

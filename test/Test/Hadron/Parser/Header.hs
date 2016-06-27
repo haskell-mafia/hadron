@@ -20,6 +20,8 @@ prop_tripping_HeaderName = trippingP renderHeaderName headerNameP
 
 prop_tripping_HeaderValue = trippingP renderHeaderValue headerValueP
 
+prop_tripping_Header = trippingP renderHeader headerP
+
 return []
 tests :: IO Bool
 tests = $disorderCheckEnvAll TestRunMore

@@ -19,6 +19,7 @@ import           P
 
 import           X.Data.Attoparsec.ByteString (sepByByte1)
 
+-- | header-field   = field-name ":" OWS field-value OWS
 headerP :: Parser Header
 headerP = do
   n <- headerNameP

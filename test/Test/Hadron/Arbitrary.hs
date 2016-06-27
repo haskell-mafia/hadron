@@ -4,6 +4,8 @@
 module Test.Hadron.Arbitrary where
 
 import qualified Data.ByteString as BS
+import           Data.List.NonEmpty (NonEmpty)
+import qualified Data.List.NonEmpty as NE
 
 import           P
 
@@ -12,6 +14,11 @@ import           Hadron.Data
 import           Test.Hadron.Gen
 import           Test.QuickCheck
 import           Test.QuickCheck.Instances ()
+
+instance Arbitrary a => Arbitrary (NonEmpty a)
+  where
+    arbitrary =
+      NE.fromList <$> listOf1 arbitrary
 
 instance Arbitrary HTTPVersion where
   arbitrary = elements [minBound..maxBound]
@@ -37,6 +44,9 @@ instance Arbitrary HeaderValue where
         , fmap ("\t" <>) genVisibleWithTab
         , liftM2 (<>) (genVisible EmptyAllowed) genVisibleWithTab
         ]
+
+instance Arbitrary Header where
+  arbitrary = Header <$> arbitrary <*> arbitrary
 
 instance Arbitrary URIPath where
   arbitrary = fmap URIPath genURIPath
