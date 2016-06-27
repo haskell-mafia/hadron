@@ -6,6 +6,7 @@ module Hadron.Parser.Common(
   , hexDigit
   , isTokenWord
   , isVisible
+  , skipOWS
   ) where
 
 import           Data.Attoparsec.ByteString (Parser)
@@ -56,3 +57,11 @@ hexDigit = fmap BS.singleton $ AB.satisfy valid
       || w >= 0x61 && w <= 0x66 -- a-f
       || w >= 0x30 && w <= 0x39 -- 0-9
 {-# INLINE hexDigit #-}
+
+-- | Skip "optional whitespace" - space and horizontal tab.
+skipOWS :: Parser ()
+skipOWS = AB.skipWhile valid
+  where
+    valid 0x20 = True
+    valid 0x09 = True
+    valid _ = False

@@ -4,16 +4,29 @@
 {-# LANGUAGE LambdaCase #-}
 module Hadron.Parser.Header(
     headerNameP
+  , headerP
   , headerValueP
   ) where
 
 import           Data.Attoparsec.ByteString (Parser)
 import qualified Data.Attoparsec.ByteString as AB
+import qualified Data.List.NonEmpty as NE
 
 import           Hadron.Data.Header
 import           Hadron.Parser.Common
 
 import           P
+
+import           X.Data.Attoparsec.ByteString (sepByByte1)
+
+headerP :: Parser Header
+headerP = do
+  n <- headerNameP
+  void $ AB.word8 0x3a -- colon
+  skipOWS
+  vs <- fmap NE.fromList $ sepByByte1 headerValueP 0x2c -- comma
+  skipOWS
+  pure $ Header n vs
 
 headerNameP :: Parser HeaderName
 headerNameP =
