@@ -48,11 +48,16 @@ instance Arbitrary QueryString where
     where
       genQueryString' = do
         ps <- fmap BS.concat $ listOf genQueryStringFragmentPart
-        pure . QueryStringPart $ "?" <> ps
+        pure $ QueryStringPart ps
 
 instance Arbitrary Fragment where
   arbitrary = frequency [(1, pure NoFragment), (999, genFragment')]
     where
       genFragment' = do
         ps <- fmap BS.concat $ listOf genQueryStringFragmentPart
-        pure . FragmentPart $ "?" <> ps
+        pure $ FragmentPart ps
+
+instance Arbitrary RequestTarget where
+  arbitrary = oneof [
+      AbsPathTarget <$> arbitrary <*> arbitrary <*> arbitrary
+    ]

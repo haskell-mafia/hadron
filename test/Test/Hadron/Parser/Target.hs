@@ -26,6 +26,8 @@ prop_QueryString_tripping = trippingP renderQueryString queryStringP
 
 prop_Fragment_tripping = trippingP renderFragment fragmentP
 
+prop_RequestTarget_tripping = trippingP renderRequestTarget requestTargetP
+
 prop_percentEncodedP w =
   let bs = percentEncode w
       r = AB.parseOnly percentEncodedP bs in

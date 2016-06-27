@@ -39,11 +39,13 @@ absPathTargetP = do
 
 fragmentP :: Parser Fragment
 fragmentP =
-  -- URI fragment must start with a hash.
+  -- URI fragment must start with a hash. If we have a space there's no
+  -- fragment part. If we have anything else we have an invalid URI.
   AB.peekWord8 >>= \case
     Nothing -> pure NoFragment
+    Just 0x20 -> pure NoFragment
     Just 0x23 -> fmap FragmentPart fragmentP'
-    Just _ -> fail "query string does not begin with ?"
+    Just _ -> fail "fragment does not begin with #"
   where
     fragmentP' =
       void (AB.word8 0x23) >> queryStringFragmentP
@@ -52,10 +54,12 @@ queryStringP :: Parser QueryString
 queryStringP =
   -- Query string part must start with a question mark. If we see a hash
   -- instead, we don't have a query string but we do have a fragment.
+  -- If we see space we're at the end of the URI.
   -- If we see any other character we have an invalid URI.
   AB.peekWord8 >>= \case
     Nothing -> pure NoQueryString
-    Just 0x23 -> pure NoQueryString
+    Just 0x23 -> pure NoQueryString -- hash
+    Just 0x20 -> pure NoQueryString -- space
     Just 0x3f -> fmap QueryStringPart queryStringP'
     Just _ -> fail "query string does not begin with ?"
   where
@@ -64,8 +68,8 @@ queryStringP =
 
 -- | The tail of the query-string or fragment section.
 --
--- The query-string part is terminated by a # or end-of-input. The fragment
--- part is terminated by end-of-input.
+-- The query-string part is terminated by a # or space. The fragment
+-- part is terminated by space.
 queryStringFragmentP :: Parser ByteString
 queryStringFragmentP =
   fmap BS.concat $ AB.many' part
@@ -88,7 +92,15 @@ uriPathP = do
   AB.peekWord8 >>= \case
     Nothing -> pure $ URIPath "/"
     Just 0x2f -> fail "Initial URI segment starts with //"
-    Just _ -> do
+    Just _ -> nonEmptyPath <|> (pure $ URIPath "/")
+  where
+    slash = 0x2f
+
+    segmentNZ = uriPcharP
+
+    segment = fmap BS.concat $ many uriPcharP
+
+    nonEmptyPath = do
       s0 <- segmentNZ
       ss <- sepByByte1 segment slash
       pure . URIPath $ BS.concat [
@@ -96,12 +108,7 @@ uriPathP = do
         , s0
         , BS.intercalate "/" ss
         ]
-  where
-    slash = 0x2f
-  
-    segmentNZ = uriPcharP
 
-    segment = fmap BS.concat $ many uriPcharP
 
 uriPcharP :: Parser ByteString
 uriPcharP = AB.choice [
