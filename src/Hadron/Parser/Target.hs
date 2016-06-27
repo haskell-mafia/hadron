@@ -24,7 +24,8 @@ import           X.Data.Attoparsec.ByteString.Ascii (isAlphaNum)
 --
 -- "/" [ segment-nz *( "/" segment) ]
 --
--- This parser is pretty slow, can probably make it faster.
+-- This parser is pretty slow, could make it faster by rewriting as a
+-- take-while-predicate with a stateful scanner for percent-encoding.
 uriPathP :: Parser URIPath
 uriPathP = do
   void $ AB.word8 slash
@@ -87,6 +88,9 @@ isURISubDelim 0x3d = True -- equals
 isURISubDelim _ = False
 
 -- | pct-encoded = "%" HEXDIG HEXDIG
+--
+-- In URIs, these are UTF-8 values, but we don't currently attempt to validate
+-- them beyond ensuring they're valid hex.
 percentEncodedP :: Parser ByteString
 percentEncodedP = do
   void $ AB.word8 0x25 -- %
