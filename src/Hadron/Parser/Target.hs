@@ -2,8 +2,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
 module Hadron.Parser.Target(
-    uriPathP
+    queryStringP
   , percentEncodedP
+  , uriPathP
   ) where
 
 import           Data.Attoparsec.ByteString (Parser)
@@ -19,6 +20,24 @@ import           P
 
 import           X.Data.Attoparsec.ByteString (sepByByte1)
 import           X.Data.Attoparsec.ByteString.Ascii (isAlphaNum)
+
+queryStringP :: Parser QueryString
+queryStringP =
+  AB.peekWord8 >>= \case
+    Nothing -> pure NoQueryString
+    Just 0x3f -> fmap QueryStringPart queryStringP'
+    Just _ -> fail "query string does not begin with ?"
+  where
+    queryStringP' = do
+      void $ AB.word8 0x3f -- question mark
+      fmap BS.concat $ AB.many' queryStringPart
+
+    queryStringPart =
+      uriPcharP <|> (fmap BS.singleton $ AB.satisfy extra)
+
+    extra 0x2f = True -- /
+    extra 0x3f = True -- ?
+    extra _ = False
 
 -- | We're parsing the path-absolute form in RFC 3986:
 --
@@ -43,17 +62,18 @@ uriPathP = do
   where
     slash = 0x2f
   
-    segmentNZ = pchar
+    segmentNZ = uriPcharP
 
-    segment = fmap BS.concat $ many pchar
+    segment = fmap BS.concat $ many uriPcharP
 
-    pchar = AB.choice [
-        uriUnreservedP
-      , percentEncodedP
-      , uriSubDelimP
-      , pcharExtraP
-      ]
-
+uriPcharP :: Parser ByteString
+uriPcharP = AB.choice [
+    uriUnreservedP
+  , percentEncodedP
+  , uriSubDelimP
+  , pcharExtraP
+  ]
+  where
     pcharExtraP = fmap BS.singleton $ AB.word8 0x3a <|> AB.word8 0x40 -- : or @
 
 -- | unreserved  = ALPHA / DIGIT / "-" / "." / "_" / "~"
