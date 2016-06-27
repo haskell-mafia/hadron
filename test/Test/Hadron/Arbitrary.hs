@@ -47,5 +47,12 @@ instance Arbitrary QueryString where
   arbitrary = frequency [(1, pure NoQueryString), (999, genQueryString')]
     where
       genQueryString' = do
-        ps <- fmap BS.concat $ listOf genQueryStringPart
+        ps <- fmap BS.concat $ listOf genQueryStringFragmentPart
         pure . QueryStringPart $ "?" <> ps
+
+instance Arbitrary Fragment where
+  arbitrary = frequency [(1, pure NoFragment), (999, genFragment')]
+    where
+      genFragment' = do
+        ps <- fmap BS.concat $ listOf genQueryStringFragmentPart
+        pure . FragmentPart $ "?" <> ps

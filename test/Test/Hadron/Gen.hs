@@ -104,7 +104,7 @@ genURIPath =
         , BS.intercalate "/" ss
         ]
 
-genQueryStringPart =
+genQueryStringFragmentPart =
   frequency [(1, genExtra), (99, genURIPchar)]
   where
     genExtra = fmap BS.singleton $ elements $ toWords "/?"
