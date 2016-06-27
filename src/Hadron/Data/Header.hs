@@ -54,9 +54,15 @@ data Header =
   Header {
     httpHeaderName :: !HeaderName
   , httpHeaderValues :: !(NonEmpty HeaderValue)
-  } deriving (Eq, Show, Generic)
+  } deriving (Show, Generic)
 
 instance NFData Header where rnf = genericRnf
+
+instance Eq Header where
+  (Header hn1 hvs1) == (Header hn2 hvs2) =
+    hn1 == hn2 && canonicalize hvs1 == canonicalize hvs2
+    where
+      canonicalize = BS.intercalate "," . NE.toList . fmap renderHeaderValue
 
 renderHeader :: Header -> ByteString
 renderHeader (Header n vs) = BS.concat [
