@@ -36,3 +36,5 @@ instance Arbitrary HeaderValue where
         , liftM2 (<>) (genVisible EmptyAllowed) genVisibleWithTab
         ]
 
+instance Arbitrary URIPath where
+  arbitrary = fmap URIPath genURIPath

@@ -14,7 +14,7 @@ library
   build-depends:
                        base                            >= 3          && < 5
                      , ambiata-p
-                     , ambiata-x-eithert
+                     , ambiata-x-attoparsec
                      , attoparsec                      >= 0.10 && < 0.13
                      , bytestring                      >= 0.10.4     && <= 0.10.8.1
                      , deepseq-generics                == 0.2.0.*
@@ -38,6 +38,7 @@ library
                        Hadron.Parser.Common
                        Hadron.Parser.Header
                        Hadron.Parser.Request
+                       Hadron.Parser.Target
 
 test-suite test
   type:                exitcode-stdio-1.0
