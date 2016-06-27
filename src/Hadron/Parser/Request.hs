@@ -33,6 +33,7 @@ httpRequestV1_1P = do
   void space
   void . ABC.string $ renderHTTPVersion HTTP_1_1
   void crlf
+  -- FIXME: HOST header
   hs <- fmap (HTTPRequestHeaders . NE.fromList) $ AB.sepBy1' headerP crlf
   void crlf
   void crlf

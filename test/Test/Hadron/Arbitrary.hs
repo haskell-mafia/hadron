@@ -32,6 +32,8 @@ instance Arbitrary HTTPMethod where
 instance Arbitrary HeaderName where
   arbitrary = HeaderName <$> genToken EmptyForbidden
 
+  shrink = genericShrink
+
 -- Tabs are allowed, but not as the initial character.
 instance Arbitrary HeaderValue where
   arbitrary = fmap HeaderValue $ oneof [
@@ -45,11 +47,18 @@ instance Arbitrary HeaderValue where
         , liftM2 (<>) (genVisible EmptyAllowed) genVisibleWithTab
         ]
 
+  shrink = genericShrink
+
 instance Arbitrary Header where
   arbitrary = Header <$> arbitrary <*> arbitrary
 
+  shrink = genericShrink
+
 instance Arbitrary URIPath where
   arbitrary = fmap URIPath genURIPath
+
+  shrink (URIPath "/") = []
+  shrink x = filter (not . BS.null . unURIPath) $ (URIPath "/") : shrink x
 
 -- FIXME: have a more realistic example as well as the "everything we're
 -- allowed to do" version
@@ -60,6 +69,8 @@ instance Arbitrary QueryString where
         ps <- fmap BS.concat $ listOf genQueryStringFragmentPart
         pure $ QueryStringPart ps
 
+  shrink = genericShrink
+
 instance Arbitrary Fragment where
   arbitrary = frequency [(1, pure NoFragment), (999, genFragment')]
     where
@@ -67,16 +78,22 @@ instance Arbitrary Fragment where
         ps <- fmap BS.concat $ listOf genQueryStringFragmentPart
         pure $ FragmentPart ps
 
+  shrink = genericShrink
+
 instance Arbitrary RequestTarget where
   arbitrary = oneof [
       AbsPathTarget <$> arbitrary <*> arbitrary <*> arbitrary
     ]
+
+  shrink = genericShrink
 
 instance Arbitrary HTTPRequestHeaders where
   arbitrary = do
     hostH <- genHostHeader
     hs <- listOf arbitrary
     pure . HTTPRequestHeaders $ hostH :| hs
+
+  shrink = genericShrink
 
 instance Arbitrary RequestBody where
   arbitrary = frequency [
@@ -88,6 +105,18 @@ instance Arbitrary RequestBody where
         n <- choose (1, 100)
         fmap BS.pack . vectorOf n $ choose (0, 255)
 
+  shrink NoRequestBody = []
+  shrink rb =
+    let bss' = divide rb in
+    NoRequestBody : bss'
+    where
+      divide NoRequestBody = []
+      divide (RequestBody x) = if BS.null x
+        then []
+        else
+          let x' = RequestBody $ BS.take ((BS.length x) `div` 2) x in
+          [x'] <> divide x'
+
 instance Arbitrary HTTPRequestV1_1 where
   arbitrary =
     HTTPRequestV1_1
@@ -96,7 +125,11 @@ instance Arbitrary HTTPRequestV1_1 where
       <*> arbitrary
       <*> arbitrary
 
+  shrink = genericShrink
+
 instance Arbitrary HTTPRequest where
   arbitrary = oneof [
       HTTPV1_1Request <$> arbitrary
     ]
+
+  shrink = genericShrink

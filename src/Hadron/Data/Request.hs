@@ -84,9 +84,17 @@ data RequestBody =
     NoRequestBody
   -- | Regular non-chunked HTTP payload.
   | RequestBody !ByteString
-  deriving (Eq, Show, Generic)
+  deriving (Show, Generic)
 
 instance NFData RequestBody where rnf = genericRnf
+
+instance Eq RequestBody where
+  NoRequestBody == NoRequestBody = True
+  NoRequestBody == (RequestBody "") = True
+  NoRequestBody == (RequestBody _) = False
+  (RequestBody "") == NoRequestBody = True
+  (RequestBody _) == NoRequestBody = False
+  (RequestBody b1) == (RequestBody b2) = b1 == b2
 
 renderRequestBody :: RequestBody -> ByteString
 renderRequestBody NoRequestBody = ""
