@@ -3,6 +3,7 @@
 {-# LANGUAGE LambdaCase #-}
 module Hadron.Parser.Target(
     queryStringP
+  , fragmentP
   , percentEncodedP
   , uriPathP
   ) where
@@ -21,19 +22,37 @@ import           P
 import           X.Data.Attoparsec.ByteString (sepByByte1)
 import           X.Data.Attoparsec.ByteString.Ascii (isAlphaNum)
 
+fragmentP :: Parser Fragment
+fragmentP =
+  -- URI fragment must start with a hash.
+  AB.peekWord8 >>= \case
+    Nothing -> pure NoFragment
+    Just 0x23 -> fmap FragmentPart fragmentP'
+    Just _ -> fail "query string does not begin with ?"
+  where
+    fragmentP' =
+      void (AB.word8 0x23) >> queryStringFragmentP
+
 queryStringP :: Parser QueryString
 queryStringP =
+  -- Query string part must start with a question mark.
   AB.peekWord8 >>= \case
     Nothing -> pure NoQueryString
     Just 0x3f -> fmap QueryStringPart queryStringP'
     Just _ -> fail "query string does not begin with ?"
   where
-    queryStringP' = do
-      void $ AB.word8 0x3f -- question mark
-      fmap BS.concat $ AB.many' queryStringPart
+    queryStringP' =
+      void (AB.word8 0x3f) >> queryStringFragmentP
 
-    queryStringPart =
-      uriPcharP <|> (fmap BS.singleton $ AB.satisfy extra)
+-- | The tail of the query-string or fragment section.
+--
+-- The query-string part is terminated by a # or end-of-input. The fragment
+-- part is terminated by end-of-input.
+queryStringFragmentP :: Parser ByteString
+queryStringFragmentP =
+  fmap BS.concat $ AB.many' part
+  where
+    part = uriPcharP <|> (fmap BS.singleton $ AB.satisfy extra)
 
     extra 0x2f = True -- /
     extra 0x3f = True -- ?
