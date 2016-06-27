@@ -2,9 +2,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
 module Hadron.Parser.Target(
-    queryStringP
+    absPathTargetP
+  , queryStringP
   , fragmentP
   , percentEncodedP
+  , requestTargetP
   , uriPathP
   ) where
 
@@ -22,6 +24,19 @@ import           P
 import           X.Data.Attoparsec.ByteString (sepByByte1)
 import           X.Data.Attoparsec.ByteString.Ascii (isAlphaNum)
 
+-- | Target part of the request - second element of the request-line after the
+-- method and before the HTTP version.
+requestTargetP :: Parser RequestTarget
+requestTargetP = absPathTargetP -- and theoretically other options later
+
+-- | Absolute path URI target, e.g., "/example/foo/bar.html".
+absPathTargetP :: Parser RequestTarget
+absPathTargetP = do
+  p <- uriPathP
+  qs <- queryStringP
+  f <- fragmentP
+  pure $ AbsPathTarget p qs f
+
 fragmentP :: Parser Fragment
 fragmentP =
   -- URI fragment must start with a hash.
@@ -35,9 +50,12 @@ fragmentP =
 
 queryStringP :: Parser QueryString
 queryStringP =
-  -- Query string part must start with a question mark.
+  -- Query string part must start with a question mark. If we see a hash
+  -- instead, we don't have a query string but we do have a fragment.
+  -- If we see any other character we have an invalid URI.
   AB.peekWord8 >>= \case
     Nothing -> pure NoQueryString
+    Just 0x23 -> pure NoQueryString
     Just 0x3f -> fmap QueryStringPart queryStringP'
     Just _ -> fail "query string does not begin with ?"
   where
