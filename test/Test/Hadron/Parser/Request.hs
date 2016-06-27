@@ -18,6 +18,8 @@ import           Test.Hadron.Parser
 
 prop_tripping_HTTPMethod = trippingP renderHTTPMethod httpMethodP
 
+prop_tripping_HTTPRequest = trippingP renderHTTPRequest httpRequestP
+
 return []
 tests :: IO Bool
 tests = $disorderCheckEnvAll TestRunMore

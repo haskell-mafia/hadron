@@ -4,7 +4,7 @@
 module Test.Hadron.Arbitrary where
 
 import qualified Data.ByteString as BS
-import           Data.List.NonEmpty (NonEmpty)
+import           Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.List.NonEmpty as NE
 
 import           P
@@ -70,4 +70,33 @@ instance Arbitrary Fragment where
 instance Arbitrary RequestTarget where
   arbitrary = oneof [
       AbsPathTarget <$> arbitrary <*> arbitrary <*> arbitrary
+    ]
+
+instance Arbitrary HTTPRequestHeaders where
+  arbitrary = do
+    hostH <- genHostHeader
+    hs <- listOf arbitrary
+    pure . HTTPRequestHeaders $ hostH :| hs
+
+instance Arbitrary RequestBody where
+  arbitrary = frequency [
+      (1, pure NoRequestBody)
+    , (999, bsBody)
+    ]
+    where
+      bsBody = fmap RequestBody $ do
+        n <- choose (1, 100)
+        fmap BS.pack . vectorOf n $ choose (0, 255)
+
+instance Arbitrary HTTPRequestV1_1 where
+  arbitrary =
+    HTTPRequestV1_1
+      <$> arbitrary
+      <*> arbitrary
+      <*> arbitrary
+      <*> arbitrary
+
+instance Arbitrary HTTPRequest where
+  arbitrary = oneof [
+      HTTPV1_1Request <$> arbitrary
     ]

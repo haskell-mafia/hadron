@@ -3,6 +3,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 module Hadron.Parser.Request(
     httpMethodP
+  , httpRequestP
   , httpRequestV1_1P
   ) where
 
@@ -19,6 +20,9 @@ import           Hadron.Parser.Target
 
 import           P
 
+httpRequestP :: Parser HTTPRequest
+httpRequestP = httpRequestV1_1P
+
 -- FIXME: limit length
 httpRequestV1_1P :: Parser HTTPRequest
 httpRequestV1_1P = do
@@ -27,7 +31,7 @@ httpRequestV1_1P = do
   void space
   rt <- requestTargetP
   void space
-  ABC.string $ renderHTTPVersion HTTP_1_1
+  void . ABC.string $ renderHTTPVersion HTTP_1_1
   void crlf
   hs <- fmap (HTTPRequestHeaders . NE.fromList) $ AB.sepBy1' headerP crlf
   void crlf

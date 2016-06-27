@@ -10,6 +10,8 @@ import qualified Data.ByteString.Char8 as BSC
 import           Data.Char (ord)
 import           Data.Word (Word8)
 
+import           Hadron.Data
+
 import           P
 
 import           Test.QuickCheck
@@ -108,3 +110,7 @@ genQueryStringFragmentPart =
   frequency [(1, genExtra), (99, genURIPchar)]
   where
     genExtra = fmap BS.singleton $ elements $ toWords "/?"
+
+genHostHeader = do
+  hv <- fmap HeaderValue $ genVisible EmptyForbidden
+  pure $ Header (HeaderName "host") (pure hv)
