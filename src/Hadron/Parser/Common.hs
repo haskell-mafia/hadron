@@ -5,6 +5,7 @@ module Hadron.Parser.Common(
     hexByte
   , hexDigit
   , isTokenWord
+  , skipCRLF
   , skipOWS
   ) where
 
@@ -60,3 +61,6 @@ skipOWS = AB.skipWhile valid
     valid 0x20 = True
     valid 0x09 = True
     valid _ = False
+
+skipCRLF :: Parser ()
+skipCRLF = void $ AB.word8 0x0d >> AB.word8 0x0a
