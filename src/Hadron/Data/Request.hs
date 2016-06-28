@@ -88,6 +88,7 @@ data RequestBody =
 
 instance NFData RequestBody where rnf = genericRnf
 
+-- | No request body is equivalent to an empty request body.
 instance Eq RequestBody where
   NoRequestBody == NoRequestBody = True
   NoRequestBody == (RequestBody "") = True

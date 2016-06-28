@@ -42,9 +42,9 @@ fragmentP =
   -- URI fragment must start with a hash. If we have a space there's no
   -- fragment part. If we have anything else we have an invalid URI.
   AB.peekWord8 >>= \case
-    Nothing -> pure NoFragment
-    Just 0x20 -> pure NoFragment
-    Just 0x23 -> fmap FragmentPart fragmentP'
+    Nothing -> pure NoFragment -- end of input
+    Just 0x20 -> pure NoFragment -- space
+    Just 0x23 -> fmap FragmentPart fragmentP' -- hash
     Just _ -> fail "fragment does not begin with #"
   where
     fragmentP' =
@@ -57,10 +57,10 @@ queryStringP =
   -- If we see space we're at the end of the URI.
   -- If we see any other character we have an invalid URI.
   AB.peekWord8 >>= \case
-    Nothing -> pure NoQueryString
+    Nothing -> pure NoQueryString -- end of input
     Just 0x23 -> pure NoQueryString -- hash
     Just 0x20 -> pure NoQueryString -- space
-    Just 0x3f -> fmap QueryStringPart queryStringP'
+    Just 0x3f -> fmap QueryStringPart queryStringP' -- question mark
     Just _ -> fail "query string does not begin with ?"
   where
     queryStringP' =
