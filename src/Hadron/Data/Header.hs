@@ -15,6 +15,7 @@ module Hadron.Data.Header(
 
 import           Control.DeepSeq.Generics (genericRnf)
 
+import           Data.Bits ((.|.))
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
 import           Data.List.NonEmpty (NonEmpty)
@@ -28,9 +29,21 @@ import           P
 newtype HeaderName =
   HeaderName {
     unHeaderName :: ByteString
-  } deriving (Eq, Show, Generic)
+  } deriving (Show, Generic)
 
 instance NFData HeaderName where rnf = genericRnf
+
+instance Eq HeaderName where
+  (HeaderName x) == (HeaderName y) = (asciiToLower x) == (asciiToLower y)
+
+-- | This should probably be in x-bytestring or somewhere.
+asciiToLower :: ByteString -> ByteString
+asciiToLower = {-# SCC asciiToLower #-} BS.map lower
+  where
+    lower w
+      | w >= 0x41 && w <= 0x5a = w .|. 0x20
+      | otherwise              = w
+{-# INLINE asciiToLower #-}
 
 renderHeaderName :: HeaderName -> ByteString
 renderHeaderName = unHeaderName
