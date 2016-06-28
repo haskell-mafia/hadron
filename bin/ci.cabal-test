@@ -1,0 +1,8 @@
+#!/bin/sh -exu
+
+#
+# Build hadron test packages.
+#
+
+cd test
+../mafia build
