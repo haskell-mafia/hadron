@@ -2,8 +2,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
 module Hadron.Parser.Target(
-    uriPathP
+    absPathTargetP
+  , queryStringP
+  , fragmentP
   , percentEncodedP
+  , requestTargetP
+  , uriPathP
   ) where
 
 import           Data.Attoparsec.ByteString (Parser)
@@ -20,6 +24,62 @@ import           P
 import           X.Data.Attoparsec.ByteString (sepByByte1)
 import           X.Data.Attoparsec.ByteString.Ascii (isAlphaNum)
 
+-- | Target part of the request - second element of the request-line after the
+-- method and before the HTTP version.
+requestTargetP :: Parser RequestTarget
+requestTargetP = absPathTargetP -- and theoretically other options later
+
+-- | Absolute path URI target, e.g., "/example/foo/bar.html".
+absPathTargetP :: Parser RequestTarget
+absPathTargetP = do
+  p <- uriPathP
+  qs <- queryStringP
+  f <- fragmentP
+  pure $ AbsPathTarget p qs f
+
+fragmentP :: Parser Fragment
+fragmentP =
+  -- URI fragment must start with a hash. If we have a space there's no
+  -- fragment part. If we have anything else we have an invalid URI.
+  AB.peekWord8 >>= \case
+    Nothing -> pure NoFragment -- end of input
+    Just 0x20 -> pure NoFragment -- space
+    Just 0x23 -> fmap FragmentPart fragmentP' -- hash
+    Just _ -> fail "fragment does not begin with #"
+  where
+    fragmentP' =
+      void (AB.word8 0x23) >> queryStringFragmentP
+
+queryStringP :: Parser QueryString
+queryStringP =
+  -- Query string part must start with a question mark. If we see a hash
+  -- instead, we don't have a query string but we do have a fragment.
+  -- If we see space we're at the end of the URI.
+  -- If we see any other character we have an invalid URI.
+  AB.peekWord8 >>= \case
+    Nothing -> pure NoQueryString -- end of input
+    Just 0x23 -> pure NoQueryString -- hash
+    Just 0x20 -> pure NoQueryString -- space
+    Just 0x3f -> fmap QueryStringPart queryStringP' -- question mark
+    Just _ -> fail "query string does not begin with ?"
+  where
+    queryStringP' =
+      void (AB.word8 0x3f) >> queryStringFragmentP
+
+-- | The tail of the query-string or fragment section.
+--
+-- The query-string part is terminated by a # or space. The fragment
+-- part is terminated by space.
+queryStringFragmentP :: Parser ByteString
+queryStringFragmentP =
+  fmap BS.concat $ AB.many' part
+  where
+    part = uriPcharP <|> (fmap BS.singleton $ AB.satisfy extra)
+
+    extra 0x2f = True -- /
+    extra 0x3f = True -- ?
+    extra _ = False
+
 -- | We're parsing the path-absolute form in RFC 3986:
 --
 -- "/" [ segment-nz *( "/" segment) ]
@@ -32,7 +92,15 @@ uriPathP = do
   AB.peekWord8 >>= \case
     Nothing -> pure $ URIPath "/"
     Just 0x2f -> fail "Initial URI segment starts with //"
-    Just _ -> do
+    Just _ -> nonEmptyPath <|> (pure $ URIPath "/")
+  where
+    slash = 0x2f
+
+    segmentNZ = uriPcharP
+
+    segment = fmap BS.concat $ many uriPcharP
+
+    nonEmptyPath = do
       s0 <- segmentNZ
       ss <- sepByByte1 segment slash
       pure . URIPath $ BS.concat [
@@ -40,20 +108,16 @@ uriPathP = do
         , s0
         , BS.intercalate "/" ss
         ]
+
+
+uriPcharP :: Parser ByteString
+uriPcharP = AB.choice [
+    uriUnreservedP
+  , percentEncodedP
+  , uriSubDelimP
+  , pcharExtraP
+  ]
   where
-    slash = 0x2f
-  
-    segmentNZ = pchar
-
-    segment = fmap BS.concat $ many pchar
-
-    pchar = AB.choice [
-        uriUnreservedP
-      , percentEncodedP
-      , uriSubDelimP
-      , pcharExtraP
-      ]
-
     pcharExtraP = fmap BS.singleton $ AB.word8 0x3a <|> AB.word8 0x40 -- : or @
 
 -- | unreserved  = ALPHA / DIGIT / "-" / "." / "_" / "~"

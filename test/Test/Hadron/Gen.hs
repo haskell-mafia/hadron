@@ -10,6 +10,8 @@ import qualified Data.ByteString.Char8 as BSC
 import           Data.Char (ord)
 import           Data.Word (Word8)
 
+import           Hadron.Data
+
 import           P
 
 import           Test.QuickCheck
@@ -34,12 +36,11 @@ genStdHttpMethod = elements [
   ]
 
 byteStringOf g ea = do
-  n <- choose (lb, 100)
-  fmap BS.pack $ vectorOf n g
+  fmap BS.pack $ v g
   where
-    lb = case ea of
-      EmptyAllowed -> 0
-      EmptyForbidden -> 1
+    v = case ea of
+      EmptyAllowed -> listOf
+      EmptyForbidden -> listOf1
 
 genAlphaNumWord = oneof [
     choose (0x41, 0x5a) -- upper
@@ -103,3 +104,12 @@ genURIPath =
         , s0
         , BS.intercalate "/" ss
         ]
+
+genQueryStringFragmentPart =
+  frequency [(1, genExtra), (99, genURIPchar)]
+  where
+    genExtra = fmap BS.singleton $ elements $ toWords "/?"
+
+genHostHeader = do
+  hv <- fmap HeaderValue $ genVisible EmptyForbidden
+  pure $ Header (HeaderName "host") (pure hv)

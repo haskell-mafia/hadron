@@ -5,7 +5,8 @@ module Hadron.Parser.Common(
     hexByte
   , hexDigit
   , isTokenWord
-  , isVisible
+  , skipCRLF
+  , skipOWS
   ) where
 
 import           Data.Attoparsec.ByteString (Parser)
@@ -16,7 +17,7 @@ import           Data.Word
 
 import           P
 
-import           X.Data.Attoparsec.ByteString.Ascii (isAlphaNum, isPrintable)
+import           X.Data.Attoparsec.ByteString.Ascii (isAlphaNum)
 
 -- | Valid part of a "token" as defined by RFC 7230.
 --
@@ -39,10 +40,6 @@ isTokenWord 0x7c = True -- pipe
 isTokenWord 0x7e = True -- tilde
 isTokenWord w = isAlphaNum w
 
--- | Printable ASCII characters.
-isVisible :: Word8 -> Bool
-isVisible = isPrintable
-
 -- | Two hexadecimal digits.
 hexByte :: Parser ByteString
 hexByte = (<>) <$> hexDigit <*> hexDigit
@@ -56,3 +53,14 @@ hexDigit = fmap BS.singleton $ AB.satisfy valid
       || w >= 0x61 && w <= 0x66 -- a-f
       || w >= 0x30 && w <= 0x39 -- 0-9
 {-# INLINE hexDigit #-}
+
+-- | Skip "optional whitespace" - space and horizontal tab.
+skipOWS :: Parser ()
+skipOWS = AB.skipWhile valid
+  where
+    valid 0x20 = True
+    valid 0x09 = True
+    valid _ = False
+
+skipCRLF :: Parser ()
+skipCRLF = void $ AB.word8 0x0d >> AB.word8 0x0a
