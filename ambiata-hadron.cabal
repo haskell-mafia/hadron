@@ -19,6 +19,7 @@ library
                      , bytestring                      >= 0.10.4     && <= 0.10.8.1
                      , deepseq-generics                == 0.2.0.*
                      , semigroups                      >= 0.16       && < 0.19
+                     , text                            == 1.2.*
                      , transformers                    >= 0.4        && < 0.6
 
   ghc-options:
@@ -35,10 +36,12 @@ library
                        Hadron.Data.Request
                        Hadron.Data.Target
                        Hadron.Data.Version
+                       Hadron.Error
                        Hadron.Parser.Common
                        Hadron.Parser.Header
                        Hadron.Parser.Request
                        Hadron.Parser.Target
+                       Hadron.Request
 
 test-suite test
   type:                exitcode-stdio-1.0
@@ -61,3 +64,4 @@ test-suite test
                      , QuickCheck                      >= 2.8.2      && < 2.9
                      , quickcheck-instances            == 0.3.*
                      , semigroups                      >= 0.16       && < 0.19
+                     , text                            == 1.2.*
