@@ -24,7 +24,6 @@ import           P
 httpRequestP :: Parser HTTPRequest
 httpRequestP = httpRequestV1_1P
 
--- FIXME: limit length
 httpRequestV1_1P :: Parser HTTPRequest
 httpRequestV1_1P = do
   -- request line

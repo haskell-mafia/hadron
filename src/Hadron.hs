@@ -1,4 +1,8 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE OverloadedStrings #-}
-module Hadron where
+module Hadron(
+    module X
+  ) where
+
+import           Hadron.Data as X
+import           Hadron.Error as X
+import           Hadron.Request as X
