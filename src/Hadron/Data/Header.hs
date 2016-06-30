@@ -45,6 +45,7 @@ asciiToLower = {-# SCC asciiToLower #-} BS.map lower
       | otherwise              = w
 {-# INLINE asciiToLower #-}
 
+-- | Render header name. Makes no guarantees about case.
 renderHeaderName :: HeaderName -> ByteString
 renderHeaderName = unHeaderName
 
