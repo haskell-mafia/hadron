@@ -3,10 +3,13 @@
 module Hadron.Request(
     parseHTTPRequest
   , addRequestHeader
+  , lookupRequestHeader
   ) where
 
 import qualified Data.Attoparsec.ByteString as AB
 import           Data.ByteString (ByteString)
+import           Data.List.NonEmpty (NonEmpty, nonEmpty)
+import qualified Data.List.NonEmpty as NE
 import           Data.Semigroup ((<>))
 import qualified Data.Text as T
 
@@ -28,3 +31,9 @@ addRequestHeader (HTTPV1_1Request req) newH =
       newHs = HTTPRequestHeaders $ (pure newH) <> oldHs in
   HTTPV1_1Request $ req { hrqv1_1Headers = newHs }
 
+lookupRequestHeader :: HTTPRequest -> HeaderName -> Maybe' (NonEmpty HeaderValue)
+lookupRequestHeader (HTTPV1_1Request req) hn =
+  let matches = filter ((== hn) . httpHeaderName) . NE.toList . unHTTPRequestHeaders $ hrqv1_1Headers req in
+  case nonEmpty matches of
+    Nothing -> Nothing'
+    Just matches' -> Just' . join $ httpHeaderValues <$> matches'
