@@ -38,6 +38,7 @@ library
                        Hadron.Data.Target
                        Hadron.Data.Version
                        Hadron.Error
+                       Hadron.Header
                        Hadron.Parser.Common
                        Hadron.Parser.Header
                        Hadron.Parser.Request
