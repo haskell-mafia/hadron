@@ -11,6 +11,7 @@ module Hadron.Data.Request(
   , renderHTTPMethod
   , renderHTTPRequest
   , renderHTTPRequestV1_1
+  , renderRequestBody
   ) where
 
 import           Control.DeepSeq.Generics (genericRnf)
