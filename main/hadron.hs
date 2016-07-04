@@ -1,8 +1,15 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE LambdaCase #-}
 
 import           BuildInfo_ambiata_hadron
+
 import           DependencyInfo_ambiata_hadron
+
+import qualified Data.ByteString as BS
+import qualified Data.Text.IO as T
+
+import           Hadron
 
 import           Options.Applicative
 
@@ -27,15 +34,20 @@ main = do
       RunCommand RealRun c ->
         run c
 
-parser :: Parser Command
+parser :: Parser HadronCommand
 parser = subparser $
      command' "validate" "Verify that an HTTP request read from standard input is well-formed." (pure Validate)
 
-run :: Command -> IO ()
+run :: HadronCommand -> IO ()
 run c = case c of
   Validate ->
-    putStrLn "*implement me*" >> exitFailure
+    fmap parseHTTPRequest BS.getContents >>= \case
+      Left e -> do
+        T.putStrLn $ renderRequestError e
+        exitFailure
+      Right _ ->
+        pure ()
 
-data Command =
+data HadronCommand =
   Validate
   deriving (Eq, Show)
