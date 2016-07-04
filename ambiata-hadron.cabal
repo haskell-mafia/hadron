@@ -67,3 +67,19 @@ test-suite test
                      , quickcheck-instances            == 0.3.*
                      , semigroups                      >= 0.16       && < 0.19
                      , text                            == 1.2.*
+
+executable           hadron
+  ghc-options:       -Wall -threaded -O2 -rtsopts -with-rtsopts=-N
+  main-is:           ../main/hadron.hs
+  hs-source-dirs:    gen
+  build-depends:     
+                     base                            >= 3          && < 5
+                   , ambiata-hadron
+                   , ambiata-p
+                   , ambiata-x-optparse
+                   , ambiata-x-eithert
+                   , bytestring                      == 0.10.*
+                   , optparse-applicative            == 0.12.*
+                   , text                            == 1.2.*
+                   , time                            >= 1.5        && < 1.7
+                   , transformers                    >= 0.4        && < 0.6
