@@ -26,11 +26,11 @@ main = do
   dispatch (safeCommand parser) >>= \sc ->
     case sc of
       VersionCommand ->
-        putStrLn buildInfoVersion >> exitSuccess
+        putStrLn ("hadron: " <> buildInfoVersion)
       DependencyCommand ->
         mapM_ putStrLn dependencyInfo
       RunCommand DryRun c ->
-        print c >> exitSuccess
+        print c
       RunCommand RealRun c ->
         run c
 
