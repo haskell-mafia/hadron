@@ -173,7 +173,14 @@ genHTTPRequestV1_1 =
     <*> genHTTPRequestHeaders
     <*> genRequestBody
 
-genHTTPRequest = oneof [
-    HTTPV1_1Request <$> genHTTPRequestV1_1
-  ]
+genHTTPRequest =
+  genHTTPRequest' genHTTPMethod genRequestTarget genHTTPRequestHeaders genRequestBody
 
+genHTTPRequest' gm grt grh grb = oneof [
+    fmap HTTPV1_1Request $
+      HTTPRequestV1_1
+        <$> gm
+        <*> grt
+        <*> grh
+        <*> grb
+  ]
