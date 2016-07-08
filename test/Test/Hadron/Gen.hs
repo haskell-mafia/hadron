@@ -10,7 +10,7 @@ import qualified Data.ByteString.Char8 as BSC
 import           Data.Char (ord)
 import           Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.List.NonEmpty as NE
-import           Data.Word (Word8)
+import qualified Data.Text.Encoding as T
 
 import           Disorder.Corpus (viruses)
 
@@ -20,6 +20,7 @@ import           P
 
 import           Test.QuickCheck
 import           Test.QuickCheck.Instances ()
+import qualified Test.QuickCheck.Utf8 as QT
 
 import           Text.Printf (printf)
 
@@ -74,10 +75,10 @@ genURISubDelimWord = elements $ toWords "!$&'()*+,;="
 genURIPcharExtraWord = elements $ toWords ":@"
 
 genPercentEncoded = do
-  x <- choose (0, 127) :: Gen Word8
+  x <- oneof [QT.oneByte, QT.twoByte, QT.threeByte]
   pure $ percentEncode x
 
-percentEncode = BSC.pack . printf "%%%02x"
+percentEncode = BSC.pack . concatMap (printf "%%%02x") . BS.unpack
 
 genURIPchar = oneof [
     fmap BS.singleton genURIUnreservedWord
