@@ -12,6 +12,8 @@ import           Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.List.NonEmpty as NE
 import           Data.Word (Word8)
 
+import           Disorder.Corpus (viruses)
+
 import           Hadron.Data
 
 import           P
@@ -135,6 +137,21 @@ genHTTPMethod = fmap HTTPMethod $ oneof [
     genStdHttpMethod
   , genToken EmptyForbidden
   ]
+
+genQueryStringWithValues = do
+  n <- choose (1, 10)
+  is <- vectorOf n qsItem
+  pure . QueryStringPart . BS.intercalate "&" $ renderItem <$> is
+  where
+    qsItem = (,) <$> genQSBit <*> genQSBit
+
+    renderItem (k, v) =
+      k <> "=" <> v
+
+    genQSBit = frequency [
+        (1, fmap BS.concat (listOf1 genQueryStringFragmentPart))
+      , (9, fmap T.encodeUtf8 (elements viruses))
+      ]
 
 genQueryString = frequency [(1, pure NoQueryString), (999, genQueryString')]
   where
