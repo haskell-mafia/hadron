@@ -24,86 +24,52 @@ instance Arbitrary HTTPVersion where
   arbitrary = elements [minBound..maxBound]
 
 instance Arbitrary HTTPMethod where
-  arbitrary = fmap HTTPMethod $ oneof [
-      genStdHttpMethod
-    , genToken EmptyForbidden
-    ]
+  arbitrary = genHTTPMethod
 
 instance Arbitrary HeaderName where
-  arbitrary = HeaderName <$> genToken EmptyForbidden
+  arbitrary = genHeaderName
 
   shrink = genericShrink
 
 -- Tabs are allowed, but not as the initial character.
 instance Arbitrary HeaderValue where
-  arbitrary = fmap HeaderValue $ oneof [
-      genVisible EmptyAllowed
-    , genVisibleWithTab
-    ]
-    where
-      genVisibleWithTab = liftM2 (<>) (genVisible EmptyForbidden) $ oneof [
-          genVisible EmptyForbidden
-        , fmap ("\t" <>) genVisibleWithTab
-        , liftM2 (<>) (genVisible EmptyAllowed) genVisibleWithTab
-        ]
+  arbitrary = genHeaderValue
 
   shrink = genericShrink
 
 instance Arbitrary Header where
-  arbitrary = Header <$> arbitrary <*> arbitrary
+  arbitrary = genHeader
 
   shrink = genericShrink
 
 instance Arbitrary URIPath where
-  arbitrary = fmap URIPath genURIPath
+  arbitrary = genURIPath
 
   shrink (URIPath "/") = []
   shrink x = filter (not . BS.null . unURIPath) $ (URIPath "/") : shrink x
 
--- FIXME: have a more realistic example as well as the "everything we're
--- allowed to do" version
 instance Arbitrary QueryString where
-  arbitrary = frequency [(1, pure NoQueryString), (999, genQueryString')]
-    where
-      genQueryString' = do
-        ps <- fmap BS.concat $ listOf genQueryStringFragmentPart
-        pure $ QueryStringPart ps
+  arbitrary = genQueryString
 
   shrink = genericShrink
 
 instance Arbitrary Fragment where
-  arbitrary = frequency [(1, pure NoFragment), (999, genFragment')]
-    where
-      genFragment' = do
-        ps <- fmap BS.concat $ listOf genQueryStringFragmentPart
-        pure $ FragmentPart ps
+  arbitrary = genFragment
 
   shrink = genericShrink
 
 instance Arbitrary RequestTarget where
-  arbitrary = oneof [
-      AbsPathTarget <$> arbitrary <*> arbitrary <*> arbitrary
-    ]
+  arbitrary = genRequestTarget
 
   shrink = genericShrink
 
 instance Arbitrary HTTPRequestHeaders where
-  arbitrary = do
-    hostH <- genHostHeader
-    hs <- listOf arbitrary
-    pure . HTTPRequestHeaders $ hostH :| hs
+  arbitrary = genHTTPRequestHeaders
 
   shrink = genericShrink
 
 instance Arbitrary RequestBody where
-  arbitrary = frequency [
-      (1, pure NoRequestBody)
-    , (999, bsBody)
-    ]
-    where
-      bsBody = fmap RequestBody $ do
-        n <- choose (1, 100)
-        fmap BS.pack . vectorOf n $ choose (0, 255)
+  arbitrary = genRequestBody
 
   shrink NoRequestBody = []
   shrink rb =
@@ -118,18 +84,11 @@ instance Arbitrary RequestBody where
           [x'] <> divide x'
 
 instance Arbitrary HTTPRequestV1_1 where
-  arbitrary =
-    HTTPRequestV1_1
-      <$> arbitrary
-      <*> arbitrary
-      <*> arbitrary
-      <*> arbitrary
+  arbitrary = genHTTPRequestV1_1
 
   shrink = genericShrink
 
 instance Arbitrary HTTPRequest where
-  arbitrary = oneof [
-      HTTPV1_1Request <$> arbitrary
-    ]
+  arbitrary = genHTTPRequest
 
   shrink = genericShrink
