@@ -14,7 +14,7 @@
 
 [build.branches-7-10]
 
-[build.branches-8.0]
+[build.branches-8-0]
 
 [build.branches-cabal-test]
   command = [["./bin/ci.cabal-test"]]
