@@ -15,6 +15,7 @@ import qualified Data.List.NonEmpty as NE
 import           Hadron.Data.Header
 import           Hadron.Data.Request
 import           Hadron.Data.Version
+import           Hadron.Header
 import           Hadron.Parser.Common
 import           Hadron.Parser.Header
 import           Hadron.Parser.Target
@@ -48,7 +49,7 @@ httpRequestV1_1P = do
 httpRequestHeadersP :: Parser HTTPRequestHeaders
 httpRequestHeadersP = do
   hs <- AB.sepBy1' headerP skipCRLF
-  case filter (\(Header n _) -> n == hostHeader) hs of
+  case filter (\(Header n _) -> n == hostHeaderName) hs of
     [] -> fail "no host header"
     -- We don't fail on multiple host headers here; it looks invalid but
     -- this case isn't explicitly dealt with in the spec afaict.

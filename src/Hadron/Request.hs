@@ -5,6 +5,7 @@ module Hadron.Request(
   , addRequestHeader
   , lookupRequestHeader
   , removeRequestHeader
+  , requestHeaders
   ) where
 
 import qualified Data.Attoparsec.ByteString as AB
@@ -16,6 +17,7 @@ import qualified Data.Text as T
 
 import           Hadron.Data
 import           Hadron.Error
+import           Hadron.Header
 import           Hadron.Parser.Request
 
 import           P hiding ((<>))
@@ -57,3 +59,10 @@ lookupRequestHeader (HTTPV1_1Request req) hn =
   case nonEmpty matches of
     Nothing -> Nothing'
     Just matches' -> Just' . join $ httpHeaderValues <$> matches'
+
+-- | Ensures that a list of headers is a valid HTTP request header section.
+requestHeaders :: NonEmpty Header -> Maybe' HTTPRequestHeaders
+requestHeaders hs =
+  if any ((== hostHeaderName) . httpHeaderName) hs
+    then pure $ HTTPRequestHeaders hs
+    else Nothing'

@@ -7,7 +7,6 @@ module Hadron.Data.Header(
   , HeaderValue(..)
   , Header(..)
 
-  , hostHeader
   , renderHeader
   , renderHeaderName
   , renderHeaderValue
@@ -77,6 +76,3 @@ renderHeader (Header n vs) = BS.concat [
   , ":"
   , BS.intercalate "," (NE.toList $ renderHeaderValue <$> vs)
   ]
-
-hostHeader :: HeaderName
-hostHeader = HeaderName "host"
