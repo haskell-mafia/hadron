@@ -7,6 +7,7 @@ module Test.Hadron.Request where
 import           Disorder.Core.Run (ExpectedTestSpeed(..), disorderCheckEnvAll)
 
 import           Hadron.Data
+import           Hadron.Header
 import           Hadron.Request
 
 import           P
@@ -37,6 +38,13 @@ prop_add_remove_lookup_requestHeader r@(HTTPV1_1Request r11) hn hvs =
   where
     fromJust' (Just' x) = x
     fromJust' Nothing' = Prelude.error "unexpected Nothing'"
+
+prop_requestHeaders_pos (HTTPRequestHeaders hs) =
+  requestHeaders hs === Just' (HTTPRequestHeaders hs)
+
+prop_requestHeaders_neg hs =
+  not (any ((== hostHeaderName) . httpHeaderName) hs) ==>
+    requestHeaders hs === Nothing'
 
 return []
 tests :: IO Bool
