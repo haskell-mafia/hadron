@@ -7,7 +7,7 @@ module Hadron.Parser.Request(
   , httpRequestV1_1P
   ) where
 
-import           Data.Attoparsec.ByteString (Parser)
+import           Data.Attoparsec.ByteString (Parser, (<?>))
 import qualified Data.Attoparsec.ByteString as AB
 import qualified Data.Attoparsec.ByteString.Char8 as ABC
 import qualified Data.List.NonEmpty as NE
@@ -27,13 +27,13 @@ httpRequestP = httpRequestV1_1P
 httpRequestV1_1P :: Parser HTTPRequest
 httpRequestV1_1P = do
   -- request line
-  m <- httpMethodP
+  m <- httpMethodP <?> "httpMethodP"
   void space
-  rt <- requestTargetP
+  rt <- requestTargetP <?> "requestTargetP"
   void space
-  void . ABC.string $ renderHTTPVersion HTTP_1_1
+  _ <- ABC.string (renderHTTPVersion HTTP_1_1) <?> "HTTP version"
   skipCRLF
-  hs <- httpRequestHeadersP
+  hs <- httpRequestHeadersP <?> "httpRequestHeadersP"
   skipCRLF
   skipCRLF
   payload <- do
