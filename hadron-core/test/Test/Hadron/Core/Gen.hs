@@ -202,3 +202,20 @@ genHTTPRequest' gm grt grh grb = oneof [
         <*> grh
         <*> grb
   ]
+
+data RequestMalformation =
+    MalformedNoPath
+  deriving (Eq, Show, Enum, Bounded)
+
+instance Arbitrary RequestMalformation where
+  arbitrary = elements [minBound..maxBound]
+
+genMalformedRequest' MalformedNoPath = genMalformedNoPath
+
+genMalformedNoPath =
+  fmap renderHTTPRequest $ genHTTPRequest' genHTTPMethod malformedTarget genHTTPRequestHeaders genRequestBody
+  where
+    malformedTarget = do
+      qs <- genQueryString
+      f <- genFragment
+      pure $ AbsPathTarget (URIPath "") qs f
