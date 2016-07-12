@@ -10,6 +10,9 @@ module Hadron.Data.Header(
   , renderHeader
   , renderHeaderName
   , renderHeaderValue
+
+  , authorizationHeaderName
+  , hostHeaderName
   ) where
 
 import           Control.DeepSeq.Generics (genericRnf)
@@ -76,3 +79,9 @@ renderHeader (Header n vs) = BS.concat [
   , ":"
   , BS.intercalate "," (NE.toList $ renderHeaderValue <$> vs)
   ]
+
+authorizationHeaderName :: HeaderName
+authorizationHeaderName = HeaderName "authorization"
+
+hostHeaderName :: HeaderName
+hostHeaderName = HeaderName "host"

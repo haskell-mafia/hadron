@@ -10,12 +10,10 @@ module Hadron.Parser.Request(
 import           Data.Attoparsec.ByteString (Parser, (<?>))
 import qualified Data.Attoparsec.ByteString as AB
 import qualified Data.Attoparsec.ByteString.Char8 as ABC
-import qualified Data.List.NonEmpty as NE
+import           Data.List.NonEmpty (nonEmpty)
 
-import           Hadron.Data.Header
 import           Hadron.Data.Request
 import           Hadron.Data.Version
-import           Hadron.Header
 import           Hadron.Parser.Common
 import           Hadron.Parser.Header
 import           Hadron.Parser.Target
@@ -49,11 +47,9 @@ httpRequestV1_1P = do
 httpRequestHeadersP :: Parser HTTPRequestHeaders
 httpRequestHeadersP = do
   hs <- AB.sepBy1' headerP skipCRLF
-  case filter (\(Header n _) -> n == hostHeaderName) hs of
-    [] -> fail "no host header"
-    -- We don't fail on multiple host headers here; it looks invalid but
-    -- this case isn't explicitly dealt with in the spec afaict.
-    _ -> pure . HTTPRequestHeaders $ NE.fromList hs
+  case nonEmpty hs of
+    Nothing -> fail "empty header list"
+    Just hs' -> maybe' (fail "no host header") pure $ requestHeaders hs'
 
 httpMethodP :: Parser HTTPMethod
 httpMethodP = HTTPMethod <$> AB.takeWhile isTokenWord

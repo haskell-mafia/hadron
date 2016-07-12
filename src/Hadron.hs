@@ -5,5 +5,4 @@ module Hadron(
 
 import           Hadron.Data as X
 import           Hadron.Error as X
-import           Hadron.Header as X
 import           Hadron.Request as X

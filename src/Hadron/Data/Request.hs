@@ -8,10 +8,13 @@ module Hadron.Data.Request(
   , HTTPRequestHeaders(..)
   , HTTPRequestV1_1(..)
   , RequestBody(..)
+
   , renderHTTPMethod
   , renderHTTPRequest
   , renderHTTPRequestV1_1
   , renderRequestBody
+
+  , requestHeaders
   ) where
 
 import           Control.DeepSeq.Generics (genericRnf)
@@ -101,3 +104,14 @@ instance Eq RequestBody where
 renderRequestBody :: RequestBody -> ByteString
 renderRequestBody NoRequestBody = ""
 renderRequestBody (RequestBody bs) = bs
+
+
+-- | Ensures that a list of headers is a valid HTTP request header section.
+--
+-- We don't fail on multiple host headers here; it looks invalid but
+-- this case isn't explicitly dealt with in the spec.
+requestHeaders :: NonEmpty Header -> Maybe' HTTPRequestHeaders
+requestHeaders hs =
+  if any ((== hostHeaderName) . httpHeaderName) hs
+    then pure $ HTTPRequestHeaders hs
+    else Nothing'
