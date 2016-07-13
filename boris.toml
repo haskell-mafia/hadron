@@ -4,16 +4,19 @@
 [build.dist-7-8]
   command = [
       ["master", "build", "dist-7-8", "-C", "hadron-core"]
+    , ["master", "build", "dist-7-8", "-C", "hadron-wai"]
     ]
 
 [build.dist-7-10]
   command = [
       ["master", "build", "dist-7-10", "-C", "hadron-core"]
+    , ["master", "build", "dist-7-10", "-C", "hadron-wai"]
     ]
 
 [build.dist-8-0]
   command = [
       ["master", "build", "dist-8-0", "-C", "hadron-core"]
+    , ["master", "build", "dist-8-0", "-C", "hadron-wai"]
     ]
 
 [build.dist-cabal-test]
@@ -22,16 +25,19 @@
 [build.branches-7-8]
   command = [
       ["master", "build", "branches-7-8", "-C", "hadron-core"]
+    , ["master", "build", "branches-7-8", "-C", "hadron-wai"]
     ]
 
 [build.branches-7-10]
   command = [
       ["master", "build", "branches-7-10", "-C", "hadron-core"]
+    , ["master", "build", "branches-7-10", "-C", "hadron-wai"]
     ]
 
 [build.branches-8-0]
   command = [
       ["master", "build", "branches-8-0", "-C", "hadron-core"]
+    , ["master", "build", "branches-8-0", "-C", "hadron-wai"]
     ]
 
 [build.branches-cabal-test]
