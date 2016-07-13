@@ -1,0 +1,102 @@
+name:                  ambiata-hadron-core
+version:               0.0.1
+license:               Apache-2.0
+author:                Ambiata <info@ambiata.com>
+maintainer:            Ambiata <info@ambiata.com>
+copyright:             (c) 2016 Ambiata.
+synopsis:              ambiata-hadron-core
+category:              System
+cabal-version:         >= 1.8
+build-type:            Custom
+description:           ambiata-hadron-core
+
+library
+  build-depends:
+                       base                            >= 3          && < 5
+                     , ambiata-p
+                     , ambiata-x-attoparsec
+                     , ambiata-x-bytestring
+                     , attoparsec                      >= 0.10 && < 0.14
+                     , bytestring                      >= 0.10.4     && <= 0.10.8.1
+                     , deepseq-generics                == 0.2.0.*
+                     , semigroups                      >= 0.16       && < 0.19
+                     , text                            == 1.2.*
+                     , transformers                    >= 0.4        && < 0.6
+
+  ghc-options:
+                       -Wall
+
+  hs-source-dirs:
+                       src
+
+  exposed-modules:
+                       Paths_ambiata_hadron_core
+                       Hadron.Core
+                       Hadron.Core.Data
+                       Hadron.Core.Data.Header
+                       Hadron.Core.Data.Request
+                       Hadron.Core.Data.Target
+                       Hadron.Core.Data.Version
+                       Hadron.Core.Error
+                       Hadron.Core.Parser.Common
+                       Hadron.Core.Parser.Header
+                       Hadron.Core.Parser.Request
+                       Hadron.Core.Parser.Target
+                       Hadron.Core.Request
+
+test-suite test
+  type:                exitcode-stdio-1.0
+
+  main-is:             test.hs
+
+  ghc-options:         -Wall -threaded -O2
+
+  hs-source-dirs:
+                       test
+
+  build-depends:
+                       base                            >= 3          && < 5
+                     , ambiata-disorder-core
+                     , ambiata-disorder-corpus
+                     , ambiata-p
+                     , ambiata-hadron-core
+                     , attoparsec                      >= 0.10 && < 0.14
+                     , bytestring                      >= 0.10.4     && <= 0.10.8.1
+                     , QuickCheck                      >= 2.8.2      && < 2.9
+                     , quickcheck-instances            == 0.3.*
+                     , quickcheck-text                 == 0.1.*
+                     , semigroups                      >= 0.16       && < 0.19
+                     , text                            == 1.2.*
+
+executable           hadron
+  ghc-options:       -Wall -threaded -O2 -rtsopts -with-rtsopts=-N
+  main-is:           ../main/hadron.hs
+  hs-source-dirs:    gen
+  build-depends:     
+                     base                            >= 3          && < 5
+                   , ambiata-hadron-core
+                   , ambiata-p
+                   , ambiata-x-optparse
+                   , ambiata-x-eithert
+                   , bytestring                      == 0.10.*
+                   , optparse-applicative            >= 0.11       && < 0.13
+                   , text                            == 1.2.*
+                   , time                            >= 1.5        && < 1.7
+                   , transformers                    >= 0.4        && < 0.6
+
+test-suite test-cli
+  type:
+                    exitcode-stdio-1.0
+
+  main-is:
+                    test-cli.hs
+
+  ghc-options:
+                    -Wall -threaded -O2
+
+  hs-source-dirs:
+                    test
+
+  build-depends:
+                      base                            >= 3          && < 5
+                    , ambiata-disorder-core
