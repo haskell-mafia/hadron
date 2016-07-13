@@ -4,5 +4,5 @@
 # Build hadron test packages.
 #
 
-cd test
+cd hadron-core/test
 ../mafia build
