@@ -8,7 +8,7 @@ module Hadron.Parser.Header(
   , headerValueP
   ) where
 
-import           Data.Attoparsec.ByteString (Parser)
+import           Data.Attoparsec.ByteString (Parser, (<?>))
 import qualified Data.Attoparsec.ByteString as AB
 import qualified Data.List.NonEmpty as NE
 
@@ -23,9 +23,9 @@ import           X.Data.Attoparsec.ByteString.Ascii (isPrintable)
 -- | header-field   = field-name ":" OWS field-value OWS
 headerP :: Parser Header
 headerP = do
-  n <- headerNameP
+  n <- headerNameP <?> "headerNameP"
   void $ AB.word8 0x3a -- colon
-  vs <- fmap NE.fromList $ sepByByte1 headerValueP 0x2c -- comma
+  vs <- fmap NE.fromList $ (sepByByte1 headerValueP 0x2c <?> "sepByByte1 headerValueP") -- 0x2c = comma
   pure $ Header n vs
 
 headerNameP :: Parser HeaderName

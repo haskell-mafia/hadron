@@ -10,7 +10,7 @@ module Hadron.Parser.Target(
   , uriPathP
   ) where
 
-import           Data.Attoparsec.ByteString (Parser)
+import           Data.Attoparsec.ByteString (Parser, (<?>))
 import qualified Data.Attoparsec.ByteString as AB
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
@@ -32,9 +32,9 @@ requestTargetP = absPathTargetP -- and theoretically other options later
 -- | Absolute path URI target, e.g., "/example/foo/bar.html".
 absPathTargetP :: Parser RequestTarget
 absPathTargetP = do
-  p <- uriPathP
-  qs <- queryStringP
-  f <- fragmentP
+  p <- uriPathP <?> "uriPathP"
+  qs <- queryStringP <?> "queryStringP"
+  f <- fragmentP <?> "fragmentP"
   pure $ AbsPathTarget p qs f
 
 fragmentP :: Parser Fragment
