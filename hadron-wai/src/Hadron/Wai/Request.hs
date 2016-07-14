@@ -62,7 +62,7 @@ toHTTPRequest_1_1 r = do
         else pure $ bs : acc
 
     parse' e p bs = case AB.parseOnly p bs of
-      Left _ -> left e
+      Left _ -> left $ e bs
       Right x -> pure x
 
     hadronRequestHeaders hs = case nonEmpty hs of

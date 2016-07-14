@@ -8,6 +8,7 @@ module Hadron.Wai.Error(
 
 import           Control.DeepSeq.Generics (genericRnf)
 
+import           Data.ByteString (ByteString)
 import qualified Data.Text as T
 
 import           GHC.Generics (Generic)
@@ -18,8 +19,8 @@ data WaiRequestError =
     WaiNoHostHeader
   | WaiNoRequestHeaders
   | WaiInvalidRequestHeaders
-  | WaiInvalidRequestMethod
-  | WaiInvalidRequestTarget
+  | WaiInvalidRequestMethod !ByteString
+  | WaiInvalidRequestTarget !ByteString
   | WaiUnsupportedHTTPVersion !Int !Int
   deriving (Eq, Show, Generic)
 
@@ -29,8 +30,14 @@ renderWaiRequestError :: WaiRequestError -> Text
 renderWaiRequestError WaiNoHostHeader = "no host header"
 renderWaiRequestError WaiNoRequestHeaders = "no request headers - at least one is required"
 renderWaiRequestError WaiInvalidRequestHeaders = "invalid request headers"
-renderWaiRequestError WaiInvalidRequestMethod = "invalid request method"
-renderWaiRequestError WaiInvalidRequestTarget = "invalid request target"
+renderWaiRequestError (WaiInvalidRequestMethod bs) = T.unwords [
+    "invalid request method:"
+  , T.pack $ show bs
+  ]
+renderWaiRequestError (WaiInvalidRequestTarget bs) = T.unwords [
+    "invalid request target:"
+  , T.pack $ show bs
+  ]
 renderWaiRequestError (WaiUnsupportedHTTPVersion major minor) = T.concat [
     "unsupported HTTP version: HTTP"
   , renderIntegral major
