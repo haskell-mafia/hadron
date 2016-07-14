@@ -29,6 +29,16 @@ import           System.IO (IO)
 import           X.Control.Monad.Trans.Either (EitherT, firstEitherT)
 import           X.Control.Monad.Trans.Either (hoistEither, left)
 
+-- | Convert a wai Request object to a hadron HTTPRequest object, failing in
+-- case of an invalid wai request or an unsupported HTTP version.
+--
+-- This conversion is not lossless, as wai request objects contain information
+-- such as transport type (HTTP/HTTPS) which is not part of the HTTP protocol
+-- layer.
+--
+-- Achtung: as hadron does not currently support streaming request bodies,
+-- this will read the entire payload into memory regardless of how it is
+-- chunked inside wai.
 toHTTPRequest :: W.Request -> EitherT WaiRequestError IO HTTPRequest
 toHTTPRequest r = do
   case W.httpVersion r of
@@ -66,6 +76,7 @@ toHTTPRequest_1_1 r = do
       hv' <- AB.parseOnly H.headerValueP hv
       pure $ Header hn' (pure hv')
 
+-- | Convert a hadron HTTPRequest object into a wai Request.
 fromHTTPRequest :: HTTPRequest -> W.Request
 fromHTTPRequest (HTTPV1_1Request r) = fromHTTPRequest_1_1 r
 
