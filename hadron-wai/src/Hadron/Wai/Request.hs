@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Hadron.Wai.Request(
     toHTTPRequest
+  , fromHTTPRequest
   ) where
 
 import           Control.Monad.IO.Class (liftIO)
@@ -10,6 +11,7 @@ import qualified Data.Attoparsec.ByteString as AB
 import qualified Data.ByteString as BS
 import qualified Data.CaseInsensitive as CI
 import           Data.List.NonEmpty (nonEmpty)
+import qualified Data.List.NonEmpty as NE
 
 import           Hadron.Core
 import qualified Hadron.Core.Parser.Header as H
@@ -63,3 +65,35 @@ toHTTPRequest_1_1 r = do
       hn' <- AB.parseOnly H.headerNameP $ CI.original hn
       hv' <- AB.parseOnly H.headerValueP hv
       pure $ Header hn' (pure hv')
+
+fromHTTPRequest :: HTTPRequest -> W.Request
+fromHTTPRequest (HTTPV1_1Request r) = fromHTTPRequest_1_1 r
+
+fromHTTPRequest_1_1 :: HTTPRequestV1_1 -> W.Request
+fromHTTPRequest_1_1 (HTTPRequestV1_1 m t h b) =
+  let (wBody, wBodyLen) = buildBody b in
+  W.defaultRequest {
+      W.httpVersion = HT.http11
+    , W.requestMethod = unHTTPMethod m
+    , W.rawPathInfo = renderRequestTarget t
+    , W.requestHeaders = buildHeaders h
+    , W.requestBody = wBody
+    , W.requestBodyLength = wBodyLen
+    }
+  where
+    buildBody NoRequestBody =
+      let body = pure ""
+          bodyLen = W.KnownLength 0 in
+      (body, bodyLen)
+    buildBody (RequestBody bs) =
+      let body = pure bs
+          bodyLen = W.KnownLength . fromIntegral $ BS.length bs in
+      (body, bodyLen)
+
+    buildHeaders (HTTPRequestHeaders hs) =
+      NE.toList $ buildHeader <$> hs
+
+    buildHeader (Header hn hvs) =
+      let hn' = CI.mk $ renderHeaderName hn
+          hvs' = BS.intercalate "," . NE.toList $ unHeaderValue <$> hvs in
+      (hn', hvs')
