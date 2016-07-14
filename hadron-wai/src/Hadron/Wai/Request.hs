@@ -15,6 +15,7 @@ import qualified Hadron.Core.Parser.Request as H
 import qualified Hadron.Core.Parser.Target as H
 import           Hadron.Wai.Error
 
+import qualified Network.HTTP.Types.Version as HT
 import qualified Network.Wai as W
 
 import           P
@@ -26,6 +27,12 @@ import           X.Control.Monad.Trans.Either (hoistEither, left)
 
 toHTTPRequest :: W.Request -> EitherT WaiRequestError IO HTTPRequest
 toHTTPRequest r = do
+  case W.httpVersion r of
+    (HT.HttpVersion 1 1) -> toHTTPRequest_1_1 r
+    (HT.HttpVersion major minor) -> left $ WaiUnsupportedHTTPVersion major minor
+
+toHTTPRequest_1_1 :: W.Request -> EitherT WaiRequestError IO HTTPRequest
+toHTTPRequest_1_1 r = do
   m <- parse' WaiInvalidRequestMethod H.httpMethodP $ W.requestMethod r
   b <- liftIO $ RequestBody <$> W.requestBody r
   t <- parse' WaiInvalidRequestTarget H.requestTargetP $ W.rawPathInfo r
