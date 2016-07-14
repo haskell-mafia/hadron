@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Hadron.Wai.Request(
     toHTTPRequest
   ) where
@@ -6,6 +7,7 @@ module Hadron.Wai.Request(
 import           Control.Monad.IO.Class (liftIO)
 
 import qualified Data.Attoparsec.ByteString as AB
+import qualified Data.ByteString as BS
 import qualified Data.CaseInsensitive as CI
 import           Data.List.NonEmpty (nonEmpty)
 
@@ -15,7 +17,7 @@ import qualified Hadron.Core.Parser.Request as H
 import qualified Hadron.Core.Parser.Target as H
 import           Hadron.Wai.Error
 
-import qualified Network.HTTP.Types.Version as HT
+import qualified Network.HTTP.Types as HT
 import qualified Network.Wai as W
 
 import           P
@@ -34,11 +36,19 @@ toHTTPRequest r = do
 toHTTPRequest_1_1 :: W.Request -> EitherT WaiRequestError IO HTTPRequest
 toHTTPRequest_1_1 r = do
   m <- parse' WaiInvalidRequestMethod H.httpMethodP $ W.requestMethod r
-  b <- liftIO $ RequestBody <$> W.requestBody r
+  b <- liftIO $ buildRequestBody (W.requestBody r)
   t <- parse' WaiInvalidRequestTarget H.requestTargetP $ W.rawPathInfo r
   hs <- hadronRequestHeaders $ W.requestHeaders r
   pure . HTTPV1_1Request $ HTTPRequestV1_1 m t hs b
   where
+    buildRequestBody fetch =
+      fmap (RequestBody . BS.concat . reverse) $ goFetch fetch []
+
+    goFetch fetch acc =
+      fetch >>= \bs -> if BS.null bs
+        then pure acc
+        else pure $ bs : acc
+
     parse' e p bs = case AB.parseOnly p bs of
       Left _ -> left e
       Right x -> pure x
