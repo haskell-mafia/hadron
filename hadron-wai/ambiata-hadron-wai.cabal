@@ -39,10 +39,10 @@ library
                        Hadron.Wai.Error
                        Hadron.Wai.Request
 
-test-suite test
+test-suite test-io
   type:                exitcode-stdio-1.0
 
-  main-is:             test.hs
+  main-is:             test-io.hs
 
   ghc-options:         -Wall -threaded -O2
 
@@ -52,10 +52,14 @@ test-suite test
   build-depends:
                        base                            >= 3          && < 5
                      , ambiata-disorder-core
-                     , ambiata-p
+                     , ambiata-hadron-core
+                     , ambiata-hadron-core-test
                      , ambiata-hadron-wai
+                     , ambiata-p
+                     , ambiata-x-eithert
                      , bytestring                      >= 0.10.4     && <= 0.10.8.1
                      , QuickCheck                      >= 2.8.2      && < 2.9
                      , quickcheck-instances            == 0.3.*
                      , semigroups                      >= 0.16       && < 0.19
                      , text                            == 1.2.*
+
