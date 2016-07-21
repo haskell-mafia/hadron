@@ -16,6 +16,7 @@ import qualified Prelude
 import           System.IO (IO)
 
 import           Test.Hadron.Core.Arbitrary ()
+import           Test.Hadron.Core.Gen
 import           Test.QuickCheck
 
 prop_add_remove_requestHeader r@(HTTPV1_1Request r11) hn hvs =
@@ -37,6 +38,9 @@ prop_add_remove_lookup_requestHeader r@(HTTPV1_1Request r11) hn hvs =
   where
     fromJust' (Just' x) = x
     fromJust' Nothing' = Prelude.error "unexpected Nothing'"
+
+prop_parseHTTPRequest_neg m = forAll (genMalformedRequest' m) $ \bs ->
+  isLeft (parseHTTPRequest bs) === True
 
 return []
 tests :: IO Bool
