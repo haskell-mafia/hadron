@@ -105,7 +105,6 @@ renderRequestBody :: RequestBody -> ByteString
 renderRequestBody NoRequestBody = ""
 renderRequestBody (RequestBody bs) = bs
 
-
 -- | Ensures that a list of headers is a valid HTTP request header section.
 --
 -- We don't fail on multiple host headers here; it looks invalid but
