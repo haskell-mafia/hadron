@@ -39,6 +39,20 @@ prop_add_remove_lookup_requestHeader r@(HTTPV1_1Request r11) hn hvs =
     fromJust' (Just' x) = x
     fromJust' Nothing' = Prelude.error "unexpected Nothing'"
 
+prop_setRequestHeader_lookup r hn hvs =
+  let
+    r' = setRequestHeader r $ Header hn hvs
+    hvs' = lookupRequestHeader r' hn
+  in
+  hvs' === Just' hvs
+
+prop_setRequestHeader_idempotent r h =
+  let
+    r' = setRequestHeader r h
+    r'' = setRequestHeader r' h
+  in
+  r' === r''
+
 prop_parseHTTPRequest_neg m = forAll (genMalformedRequest' m) $ \bs ->
   isLeft (parseHTTPRequest bs) === True
 
