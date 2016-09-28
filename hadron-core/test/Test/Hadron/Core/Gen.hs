@@ -123,12 +123,17 @@ genHeaderValue = fmap HeaderValue $ oneof [
     genVisible EmptyAllowed
   , genVisibleWithTab
   ]
-  where
-    genVisibleWithTab = liftM2 (<>) (genVisible EmptyForbidden) $ oneof [
-        genVisible EmptyForbidden
-      , fmap ("\t" <>) genVisibleWithTab
-      , liftM2 (<>) (genVisible EmptyAllowed) genVisibleWithTab
-      ]
+
+genHeaderValue1 = fmap HeaderValue $ oneof [
+    genVisible EmptyForbidden
+  , genVisibleWithTab
+  ]
+
+genVisibleWithTab = liftM2 (<>) (genVisible EmptyForbidden) $ oneof [
+    genVisible EmptyForbidden
+  , fmap ("\t" <>) genVisibleWithTab
+  , liftM2 (<>) (genVisible EmptyAllowed) genVisibleWithTab
+  ]
 
 genHeaderName = HeaderName <$> genToken EmptyForbidden
 

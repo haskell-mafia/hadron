@@ -5,11 +5,12 @@ module Hadron.Core.Request(
   , addRequestHeader
   , lookupRequestHeader
   , removeRequestHeader
+  , setRequestHeader
   ) where
 
 import qualified Data.Attoparsec.ByteString as AB
 import           Data.ByteString (ByteString)
-import           Data.List.NonEmpty (NonEmpty, nonEmpty)
+import           Data.List.NonEmpty (NonEmpty(..), nonEmpty)
 import qualified Data.List.NonEmpty as NE
 import           Data.Semigroup ((<>))
 import qualified Data.Text as T
@@ -50,6 +51,27 @@ removeRequestHeader (HTTPV1_1Request req) hn
         Nothing'
       Just newHs ->
         pure . HTTPV1_1Request $ req { hrqv1_1Headers = HTTPRequestHeaders newHs }
+
+-- | Set a request header by name, replacing any other existing values for
+-- that header name.
+--
+-- For @setRequestHeader req name val@:
+--
+-- * If @req@ has no headers matching @name@, the header @Header name val@
+--   is added (similar to 'addRequestHeader').
+--
+-- * If @req@ has one or more existing values associated with @name@, all of
+--   these values are removed and replaced with @val@ (like
+--   'removeRequestHeader' composed with 'addRequestHeader', but avoiding the
+--   'Maybe''.
+setRequestHeader :: HTTPRequest -> Header -> HTTPRequest
+setRequestHeader (HTTPV1_1Request req) (Header hn hvs) =
+  let
+    oldHs = unHTTPRequestHeaders $ hrqv1_1Headers req
+    filteredHs = filter ((/= hn) . httpHeaderName) $ NE.toList oldHs
+    newHs = (Header hn hvs) :| filteredHs
+  in
+  HTTPV1_1Request $ req { hrqv1_1Headers = HTTPRequestHeaders newHs }
 
 lookupRequestHeader :: HTTPRequest -> HeaderName -> Maybe' (NonEmpty HeaderValue)
 lookupRequestHeader (HTTPV1_1Request req) hn =
