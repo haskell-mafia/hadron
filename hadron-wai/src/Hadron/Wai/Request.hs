@@ -61,7 +61,7 @@ toHTTPRequest_1_1 r = do
     goFetch fetch acc =
       fetch >>= \bs -> if BS.null bs
         then pure acc
-        else pure $ bs : acc
+        else goFetch fetch $ bs : acc
 
     parse' e p bs = case AB.parseOnly p bs of
       Left _ -> left $ e bs
