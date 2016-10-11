@@ -9,8 +9,10 @@ module Hadron.Wai.Request(
 import           Control.Monad.IO.Class (liftIO)
 
 import qualified Data.Attoparsec.ByteString as AB
+import           Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
 import qualified Data.CaseInsensitive as CI
+import qualified Data.IORef as I
 import           Data.List.NonEmpty (nonEmpty)
 import qualified Data.List.NonEmpty as NE
 
@@ -80,13 +82,16 @@ toHTTPRequest_1_1 r = do
       pure $ Header hn' (pure hv')
 
 -- | Convert a hadron HTTPRequest object into a wai Request.
-fromHTTPRequest :: HTTPRequest -> W.Request
+fromHTTPRequest :: HTTPRequest -> IO W.Request
 fromHTTPRequest (HTTPV1_1Request r) = fromHTTPRequest_1_1 r
 
-fromHTTPRequest_1_1 :: HTTPRequestV1_1 -> W.Request
+fromHTTPRequest_1_1 :: HTTPRequestV1_1 -> IO W.Request
 fromHTTPRequest_1_1 (HTTPRequestV1_1 m t h b) =
-  let (wBody, wBodyLen) = buildBody b in
-  W.defaultRequest {
+  let
+    wBodyLen = W.KnownLength . fromIntegral . BS.length $ renderRequestBody b
+  in do
+  wBody <- buildBody b
+  pure $ W.defaultRequest {
       W.httpVersion = HT.http11
     , W.requestMethod = unHTTPMethod m
     , W.rawPathInfo = renderRequestTarget t
@@ -95,14 +100,17 @@ fromHTTPRequest_1_1 (HTTPRequestV1_1 m t h b) =
     , W.requestBodyLength = wBodyLen
     }
   where
+    -- Construct a wai request body generator. This is an IO action which
+    -- constructs another IO action; the IORef is there so we return the
+    -- single body chunk and then an empty string to terminate thereafter.
+    buildBody :: RequestBody -> IO (IO ByteString)
     buildBody NoRequestBody =
-      let body = pure ""
-          bodyLen = W.KnownLength 0 in
-      (body, bodyLen)
-    buildBody (RequestBody bs) =
-      let body = pure bs
-          bodyLen = W.KnownLength . fromIntegral $ BS.length bs in
-      (body, bodyLen)
+      pure $ pure ""
+    buildBody (RequestBody bs) = do
+      alreadyRead <- I.newIORef False
+      pure . I.atomicModifyIORef' alreadyRead $ \fp -> case fp of
+        True -> (True, "")
+        False -> (True, bs)
 
     buildHeaders (HTTPRequestHeaders hs) =
       NE.toList $ buildHeader <$> hs

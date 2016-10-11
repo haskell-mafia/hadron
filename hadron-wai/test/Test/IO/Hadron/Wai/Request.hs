@@ -19,8 +19,8 @@ import           Test.Hadron.Core.Arbitrary ()
 import           X.Control.Monad.Trans.Either (runEitherT)
 
 prop_tripping_HTTPRequest :: HTTPRequest -> Property
-prop_tripping_HTTPRequest hr = testIO $
-  let wr = fromHTTPRequest hr in do
+prop_tripping_HTTPRequest hr = testIO $ do
+  wr <- fromHTTPRequest hr
   hr' <- runEitherT $ toHTTPRequest wr
   pure $ hr' === Right hr
 
