@@ -11,6 +11,7 @@ import           Control.Monad.IO.Class (liftIO)
 import qualified Data.Attoparsec.ByteString as AB
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
+import qualified Data.ByteString.Lazy as BSL
 import qualified Data.CaseInsensitive as CI
 import qualified Data.IORef as I
 import           Data.List.NonEmpty (nonEmpty)
@@ -53,19 +54,11 @@ toHTTPRequest r = do
 toHTTPRequest_1_1 :: W.Request -> EitherT WaiRequestError IO HTTPRequest
 toHTTPRequest_1_1 r = do
   m <- parse' WaiInvalidRequestMethod H.httpMethodP $ W.requestMethod r
-  b <- liftIO $ buildRequestBody (W.requestBody r)
+  b <- liftIO . fmap (RequestBody . BSL.toStrict) $ W.strictRequestBody r
   t <- parse' WaiInvalidRequestTarget H.requestTargetP $ W.rawPathInfo r
   hs <- hadronRequestHeaders $ W.requestHeaders r
   pure . HTTPV1_1Request $ HTTPRequestV1_1 m t hs b
   where
-    buildRequestBody fetch =
-      fmap (RequestBody . BS.concat . reverse) $ goFetch fetch []
-
-    goFetch fetch !acc =
-      fetch >>= \bs -> if BS.null bs
-        then pure acc
-        else goFetch fetch $ bs : acc
-
     parse' e p bs = case AB.parseOnly p bs of
       Left _ -> left $ e bs
       Right x -> pure x
