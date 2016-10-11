@@ -38,7 +38,9 @@ import           X.Control.Monad.Trans.Either (hoistEither, left)
 --
 -- Achtung: as hadron does not currently support streaming request bodies,
 -- this will read the entire payload into memory regardless of how it is
--- chunked inside wai.
+-- chunked inside wai. wai's requestBody, strictRequestBody and
+-- lazyRequestBody functions will return an empty result for the
+-- request after this.
 toHTTPRequest :: W.Request -> EitherT WaiRequestError IO HTTPRequest
 toHTTPRequest r = do
   case W.httpVersion r of
