@@ -1,5 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE BangPatterns #-}
 module Hadron.Wai.Request(
     toHTTPRequest
   , fromHTTPRequest
@@ -58,7 +59,7 @@ toHTTPRequest_1_1 r = do
     buildRequestBody fetch =
       fmap (RequestBody . BS.concat . reverse) $ goFetch fetch []
 
-    goFetch fetch acc =
+    goFetch fetch !acc =
       fetch >>= \bs -> if BS.null bs
         then pure acc
         else goFetch fetch $ bs : acc
