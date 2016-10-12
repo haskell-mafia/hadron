@@ -62,4 +62,5 @@ test-suite test-io
                      , quickcheck-instances            == 0.3.*
                      , semigroups                      >= 0.16       && < 0.19
                      , text                            == 1.2.*
+                     , wai                             >= 3.0 && < 3.3
 

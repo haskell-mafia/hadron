@@ -1,5 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE BangPatterns #-}
 module Hadron.Wai.Request(
     toHTTPRequest
   , fromHTTPRequest
@@ -8,8 +9,11 @@ module Hadron.Wai.Request(
 import           Control.Monad.IO.Class (liftIO)
 
 import qualified Data.Attoparsec.ByteString as AB
+import           Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
+import qualified Data.ByteString.Lazy as BSL
 import qualified Data.CaseInsensitive as CI
+import qualified Data.IORef as I
 import           Data.List.NonEmpty (nonEmpty)
 import qualified Data.List.NonEmpty as NE
 
@@ -38,7 +42,9 @@ import           X.Control.Monad.Trans.Either (hoistEither, left)
 --
 -- Achtung: as hadron does not currently support streaming request bodies,
 -- this will read the entire payload into memory regardless of how it is
--- chunked inside wai.
+-- chunked inside wai. wai's requestBody, strictRequestBody and
+-- lazyRequestBody functions will return an empty result for the
+-- request after this.
 toHTTPRequest :: W.Request -> EitherT WaiRequestError IO HTTPRequest
 toHTTPRequest r = do
   case W.httpVersion r of
@@ -48,19 +54,11 @@ toHTTPRequest r = do
 toHTTPRequest_1_1 :: W.Request -> EitherT WaiRequestError IO HTTPRequest
 toHTTPRequest_1_1 r = do
   m <- parse' WaiInvalidRequestMethod H.httpMethodP $ W.requestMethod r
-  b <- liftIO $ buildRequestBody (W.requestBody r)
+  b <- liftIO . fmap (RequestBody . BSL.toStrict) $ W.strictRequestBody r
   t <- parse' WaiInvalidRequestTarget H.requestTargetP $ W.rawPathInfo r
   hs <- hadronRequestHeaders $ W.requestHeaders r
   pure . HTTPV1_1Request $ HTTPRequestV1_1 m t hs b
   where
-    buildRequestBody fetch =
-      fmap (RequestBody . BS.concat . reverse) $ goFetch fetch []
-
-    goFetch fetch acc =
-      fetch >>= \bs -> if BS.null bs
-        then pure acc
-        else pure $ bs : acc
-
     parse' e p bs = case AB.parseOnly p bs of
       Left _ -> left $ e bs
       Right x -> pure x
@@ -77,13 +75,16 @@ toHTTPRequest_1_1 r = do
       pure $ Header hn' (pure hv')
 
 -- | Convert a hadron HTTPRequest object into a wai Request.
-fromHTTPRequest :: HTTPRequest -> W.Request
+fromHTTPRequest :: HTTPRequest -> IO W.Request
 fromHTTPRequest (HTTPV1_1Request r) = fromHTTPRequest_1_1 r
 
-fromHTTPRequest_1_1 :: HTTPRequestV1_1 -> W.Request
+fromHTTPRequest_1_1 :: HTTPRequestV1_1 -> IO W.Request
 fromHTTPRequest_1_1 (HTTPRequestV1_1 m t h b) =
-  let (wBody, wBodyLen) = buildBody b in
-  W.defaultRequest {
+  let
+    wBodyLen = W.KnownLength . fromIntegral . BS.length $ renderRequestBody b
+  in do
+  wBody <- buildBody b
+  pure $ W.defaultRequest {
       W.httpVersion = HT.http11
     , W.requestMethod = unHTTPMethod m
     , W.rawPathInfo = renderRequestTarget t
@@ -92,14 +93,17 @@ fromHTTPRequest_1_1 (HTTPRequestV1_1 m t h b) =
     , W.requestBodyLength = wBodyLen
     }
   where
+    -- Construct a wai request body generator. This is an IO action which
+    -- constructs another IO action; the IORef is there so we return the
+    -- single body chunk and then an empty string to terminate thereafter.
+    buildBody :: RequestBody -> IO (IO ByteString)
     buildBody NoRequestBody =
-      let body = pure ""
-          bodyLen = W.KnownLength 0 in
-      (body, bodyLen)
-    buildBody (RequestBody bs) =
-      let body = pure bs
-          bodyLen = W.KnownLength . fromIntegral $ BS.length bs in
-      (body, bodyLen)
+      pure $ pure ""
+    buildBody (RequestBody bs) = do
+      alreadyRead <- I.newIORef False
+      pure . I.atomicModifyIORef' alreadyRead $ \fp -> case fp of
+        True -> (True, "")
+        False -> (True, bs)
 
     buildHeaders (HTTPRequestHeaders hs) =
       NE.toList $ buildHeader <$> hs
