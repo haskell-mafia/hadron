@@ -23,6 +23,7 @@ main :: IO ()
 main = do
   hSetBuffering stdout LineBuffering
   hSetBuffering stderr LineBuffering
+  putStrLn "→"
   dispatch (safeCommand parser) >>= \sc ->
     case sc of
       VersionCommand ->
