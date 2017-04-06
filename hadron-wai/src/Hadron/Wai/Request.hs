@@ -88,6 +88,7 @@ fromHTTPRequest_1_1 (HTTPRequestV1_1 m t h b) =
       W.httpVersion = HT.http11
     , W.requestMethod = unHTTPMethod m
     , W.rawPathInfo = renderRequestTarget t
+    , W.pathInfo = HT.decodePathSegments . renderRequestTarget $ t
     , W.requestHeaders = buildHeaders h
     , W.requestBody = wBody
     , W.requestBodyLength = wBodyLen
