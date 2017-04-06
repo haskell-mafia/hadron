@@ -35,11 +35,14 @@ prop_tripping_HTTPRequest hr = testIO $ do
   hr' <- runEitherT $ toHTTPRequest wr
   pure $ hr' === Right hr
 
-prop_pathInfo_HTTPRequest :: HTTPRequest -> Property
-prop_pathInfo_HTTPRequest hr =
+prop_pathInfo_HTTPRequest_v1 :: HTTPV1_1Request -> Property
+prop_pathInfo_HTTPRequest_v1 hr =
   testIO $ do
-    wr <- fromHTTPRequest hr
-    pure $ (BSL.toStrict . BS.toLazyByteString . HT.encodePathSegments . W.pathInfo) wr === renderRequestTarget hr
+    wr <- fromHTTPRequest (HTTPV1_1Request hr)
+    pure $
+      (BSL.toStrict . BS.toLazyByteString . HT.encodePathSegments . W.pathInfo) wr
+      ===
+      (renderRequestTarget . hrqv1_1Target) hr
 
 -- Make sure we convert wai requests with multi-chunk bodies correctly.
 prop_tripping_HTTPRequest_chunked :: HTTPRequest -> Property
