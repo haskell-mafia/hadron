@@ -6,7 +6,7 @@ module Test.IO.Hadron.Wai.Request where
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BS
-import qualified Data.ByteString.Lazy as LBS
+import qualified Data.ByteString.Lazy as BSL
 import qualified Data.IORef as I
 import           Data.List (replicate)
 
