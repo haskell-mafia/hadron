@@ -58,6 +58,7 @@ test-suite test-io
                      , ambiata-p
                      , ambiata-x-eithert
                      , bytestring                      >= 0.10.4     && <= 0.10.8.1
+                     , http-types
                      , QuickCheck                      >= 2.8.2      && < 2.9
                      , quickcheck-instances            == 0.3.*
                      , semigroups                      >= 0.16       && < 0.19

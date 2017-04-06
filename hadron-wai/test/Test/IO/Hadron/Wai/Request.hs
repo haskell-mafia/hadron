@@ -15,6 +15,7 @@ import           Disorder.Core.Run (ExpectedTestSpeed(..), disorderCheckEnvAll)
 import           Hadron.Core
 import           Hadron.Wai.Request
 
+import qualified Network.HTTP.Types as HT
 import qualified Network.Wai as W
 
 import           P
@@ -31,6 +32,12 @@ prop_tripping_HTTPRequest hr = testIO $ do
   wr <- fromHTTPRequest hr
   hr' <- runEitherT $ toHTTPRequest wr
   pure $ hr' === Right hr
+
+prop_pathInfo_HTTPRequest :: HTTPRequest -> Property
+prop_pathInfo_HTTPRequest hr =
+  testIO $ do
+    wr <- fromHTTPRequest hr
+    pure $ (HT.encodePathSegments . W.pathInfo) hr === renderRequestTarget wr
 
 -- Make sure we convert wai requests with multi-chunk bodies correctly.
 prop_tripping_HTTPRequest_chunked :: HTTPRequest -> Property
