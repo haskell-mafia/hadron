@@ -5,6 +5,8 @@ module Test.IO.Hadron.Wai.Request where
 
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
+import qualified Data.ByteString.Builder as BS
+import qualified Data.ByteString.Lazy as LBS
 import qualified Data.IORef as I
 import           Data.List (replicate)
 
@@ -37,7 +39,7 @@ prop_pathInfo_HTTPRequest :: HTTPRequest -> Property
 prop_pathInfo_HTTPRequest hr =
   testIO $ do
     wr <- fromHTTPRequest hr
-    pure $ (HT.encodePathSegments . W.pathInfo) wr === renderRequestTarget hr
+    pure $ (BSL.toStrict . BS.toLazyByteString . HT.encodePathSegments . W.pathInfo) wr === renderRequestTarget hr
 
 -- Make sure we convert wai requests with multi-chunk bodies correctly.
 prop_tripping_HTTPRequest_chunked :: HTTPRequest -> Property
