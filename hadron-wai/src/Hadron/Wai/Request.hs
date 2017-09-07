@@ -55,7 +55,7 @@ toHTTPRequest_1_1 :: W.Request -> EitherT WaiRequestError IO HTTPRequest
 toHTTPRequest_1_1 r = do
   m <- parse' WaiInvalidRequestMethod H.httpMethodP $ W.requestMethod r
   b <- liftIO . fmap (RequestBody . BSL.toStrict) $ W.strictRequestBody r
-  t <- parse' WaiInvalidRequestTarget H.requestTargetP $ W.rawPathInfo r
+  t <- parse' WaiInvalidRequestTarget H.requestTargetP $ W.rawPathInfo r <> W.rawQueryString r
   hs <- hadronRequestHeaders $ W.requestHeaders r
   pure . HTTPV1_1Request $ HTTPRequestV1_1 m t hs b
   where
