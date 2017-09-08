@@ -55,7 +55,7 @@ toHTTPRequest_1_1 :: W.Request -> EitherT WaiRequestError IO HTTPRequest
 toHTTPRequest_1_1 r = do
   m <- parse' WaiInvalidRequestMethod H.httpMethodP $ W.requestMethod r
   b <- liftIO . fmap (RequestBody . BSL.toStrict) $ W.strictRequestBody r
-  t <- parse' WaiInvalidRequestTarget H.requestTargetP $ W.rawPathInfo r
+  t <- parse' WaiInvalidRequestTarget H.requestTargetP $ W.rawPathInfo r <> W.rawQueryString r
   hs <- hadronRequestHeaders $ W.requestHeaders r
   pure . HTTPV1_1Request $ HTTPRequestV1_1 m t hs b
   where
@@ -79,7 +79,7 @@ fromHTTPRequest :: HTTPRequest -> IO W.Request
 fromHTTPRequest (HTTPV1_1Request r) = fromHTTPRequest_1_1 r
 
 fromHTTPRequest_1_1 :: HTTPRequestV1_1 -> IO W.Request
-fromHTTPRequest_1_1 (HTTPRequestV1_1 m t h b) =
+fromHTTPRequest_1_1 (HTTPRequestV1_1 m (AbsPathTarget p qs f) h b) =
   let
     wBodyLen = W.KnownLength . fromIntegral . BS.length $ renderRequestBody b
   in do
@@ -87,7 +87,8 @@ fromHTTPRequest_1_1 (HTTPRequestV1_1 m t h b) =
   pure $ W.defaultRequest {
       W.httpVersion = HT.http11
     , W.requestMethod = unHTTPMethod m
-    , W.rawPathInfo = renderRequestTarget t
+    , W.rawPathInfo = renderURIPath p
+    , W.rawQueryString = renderQueryString qs <> renderFragment f
     , W.requestHeaders = buildHeaders h
     , W.requestBody = wBody
     , W.requestBodyLength = wBodyLen
