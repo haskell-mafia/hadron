@@ -87,6 +87,7 @@ fromHTTPRequest_1_1 (HTTPRequestV1_1 m (AbsPathTarget p qs f) h b) =
   pure $ W.defaultRequest {
       W.httpVersion = HT.http11
     , W.requestMethod = unHTTPMethod m
+    , W.pathInfo = HT.decodePathSegments . renderURIPath $ p
     , W.rawPathInfo = renderURIPath p
     , W.rawQueryString = renderQueryString qs <> renderFragment f
     , W.requestHeaders = buildHeaders h

@@ -9,6 +9,7 @@ module Hadron.Core.Data.Request(
   , HTTPRequestV1_1(..)
   , RequestBody(..)
 
+  , requestTarget
   , renderHTTPMethod
   , renderHTTPRequest
   , renderHTTPRequestV1_1
@@ -37,6 +38,9 @@ data HTTPRequest =
   deriving (Eq, Show, Generic)
 
 instance NFData HTTPRequest where rnf = genericRnf
+
+requestTarget :: HTTPRequest -> RequestTarget
+requestTarget (HTTPV1_1Request r) = hrqv1_1Target r
 
 renderHTTPRequest :: HTTPRequest -> ByteString
 renderHTTPRequest (HTTPV1_1Request r) = renderHTTPRequestV1_1 r

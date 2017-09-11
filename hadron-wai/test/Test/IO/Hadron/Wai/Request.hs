@@ -5,6 +5,8 @@ module Test.IO.Hadron.Wai.Request where
 
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
+import qualified Data.ByteString.Builder as BS
+import qualified Data.ByteString.Lazy as BSL
 import qualified Data.IORef as I
 import           Data.List (replicate)
 
@@ -15,6 +17,7 @@ import           Disorder.Core.Run (ExpectedTestSpeed(..), disorderCheckEnvAll)
 import           Hadron.Core
 import           Hadron.Wai.Request
 
+import qualified Network.HTTP.Types as HT
 import qualified Network.Wai as W
 
 import           P
@@ -31,6 +34,22 @@ prop_tripping_HTTPRequest hr = testIO $ do
   wr <- fromHTTPRequest hr
   hr' <- runEitherT $ toHTTPRequest wr
   pure $ hr' === Right hr
+
+prop_pathInfo_HTTPRequest :: HTTPRequest -> Property
+prop_pathInfo_HTTPRequest hr =
+  testIO $ do
+    wr <- fromHTTPRequest hr
+    let
+      encodePathSegments p =
+        case p of
+          [] ->
+            "/"
+          _ ->
+            BSL.toStrict . BS.toLazyByteString . HT.encodePathSegments $ p
+    pure $
+      (HT.decodePathSegments . encodePathSegments . W.pathInfo) wr
+      ===
+      (HT.decodePathSegments . renderURIPath . requestTargetPath . requestTarget) hr
 
 -- Make sure we convert wai requests with multi-chunk bodies correctly.
 prop_tripping_HTTPRequest_chunked :: HTTPRequest -> Property

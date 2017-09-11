@@ -78,7 +78,7 @@ genPercentEncoded = do
   x <- oneof [QT.oneByte, QT.twoByte, QT.threeByte]
   pure $ percentEncode x
 
-percentEncode = BSC.pack . concatMap (printf "%%%02x") . BS.unpack
+percentEncode = BSC.pack . concatMap (printf "%%%02X") . BS.unpack
 
 genURIPchar = oneof [
     fmap BS.singleton genURIUnreservedWord
