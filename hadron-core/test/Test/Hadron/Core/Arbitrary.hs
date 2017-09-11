@@ -46,7 +46,7 @@ instance Arbitrary URIPath where
   arbitrary = genURIPath
 
   shrink (URIPath "/") = []
-  shrink x = filter (not . BS.null . unURIPath) $ (URIPath "/") : shrink x
+  shrink _ = [URIPath "/"]
 
 instance Arbitrary QueryString where
   arbitrary = genQueryString
