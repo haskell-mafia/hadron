@@ -21,9 +21,6 @@
       ["master", "build", "dist-8-0", "-C", "hadron-wai"]
     ]
 
-[build.dist-cabal-test]
-  command = [["./bin/ci.cabal-test"]]
-
 [build.branches-7-10-core]
   command = [
       ["master", "build", "branches-7-10", "-C", "hadron-core"]
@@ -43,9 +40,6 @@
   command = [
       ["master", "build", "branches-8-0", "-C", "hadron-wai"]
     ]
-
-[build.branches-cabal-test]
-  command = [["./bin/ci.cabal-test"]]
 
 [build.validate]
   command = [["validate-respect"]]
