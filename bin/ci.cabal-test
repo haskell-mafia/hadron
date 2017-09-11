@@ -1,8 +1,0 @@
-#!/bin/sh -exu
-
-#
-# Build hadron test packages.
-#
-
-cd hadron-core/test
-../mafia build
