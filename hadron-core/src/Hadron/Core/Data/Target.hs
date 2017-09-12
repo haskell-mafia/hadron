@@ -9,6 +9,7 @@ module Hadron.Core.Data.Target(
   , URIPath(..)
 
   , requestTargetPath
+  , requestTargetQueryString
 
   , renderFragment
   , renderQueryString
@@ -42,6 +43,10 @@ instance NFData RequestTarget where rnf = genericRnf
 requestTargetPath :: RequestTarget -> URIPath
 requestTargetPath (AbsPathTarget p _ _) =
   p
+
+requestTargetQueryString :: RequestTarget -> QueryString
+requestTargetQueryString (AbsPathTarget _ qs _) =
+  qs
 
 renderRequestTarget :: RequestTarget -> ByteString
 renderRequestTarget (AbsPathTarget p qs fp) = BS.concat [
