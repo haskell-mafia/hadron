@@ -51,7 +51,8 @@ instance Arbitrary URIPath where
 instance Arbitrary QueryString where
   arbitrary = genQueryString
 
-  shrink = genericShrink
+  shrink NoQueryString = []
+  shrink (QueryStringPart _) = pure NoQueryString
 
 instance Arbitrary Fragment where
   arbitrary = genFragment

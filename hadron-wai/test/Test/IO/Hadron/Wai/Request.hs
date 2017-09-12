@@ -8,7 +8,7 @@ import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BS
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.IORef as I
-import           Data.List (replicate)
+import           Data.List (replicate, takeWhile)
 
 import           Disorder.Core.Gen (utf8BS1)
 import           Disorder.Core.IO (testIO)
@@ -34,6 +34,20 @@ prop_tripping_HTTPRequest hr = testIO $ do
   wr <- fromHTTPRequest hr
   hr' <- runEitherT $ toHTTPRequest wr
   pure $ hr' === Right hr
+
+prop_queryString_HTTPRequest :: HTTPRequest -> Property
+prop_queryString_HTTPRequest hr = testIO $ do
+  wr <- fromHTTPRequest hr
+
+  let
+    x = HT.parseQuery $ HT.renderQuery False (W.queryString wr)
+    y = HT.parseQuery . renderQueryString . requestTargetQueryString $ requestTarget hr
+    -- Work around odd behaviour in http-types which parses a trailing & as
+    -- a query-string item with neither name nor value.
+    x' = takeWhile (/= ("",Nothing)) x
+    y' = takeWhile (/= ("",Nothing)) y
+
+  pure $ x' === y'
 
 prop_pathInfo_HTTPRequest :: HTTPRequest -> Property
 prop_pathInfo_HTTPRequest hr =
