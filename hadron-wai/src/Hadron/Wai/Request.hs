@@ -89,6 +89,7 @@ fromHTTPRequest_1_1 (HTTPRequestV1_1 m (AbsPathTarget p qs f) h b) =
     , W.requestMethod = unHTTPMethod m
     , W.pathInfo = HT.decodePathSegments . renderURIPath $ p
     , W.rawPathInfo = renderURIPath p
+    , W.queryString = HT.parseQuery $ renderQueryString qs
     , W.rawQueryString = renderQueryString qs <> renderFragment f
     , W.requestHeaders = buildHeaders h
     , W.requestBody = wBody
